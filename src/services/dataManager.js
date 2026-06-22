@@ -52,6 +52,19 @@ export const DataManager = {
   },
 
   async saveTrainingSchedule(training) {
+    // If training is an array, save the entire array
+    if (Array.isArray(training)) {
+      localStorage.setItem('trainingSchedules', JSON.stringify(training));
+      // Try to save each training to Supabase
+      try {
+        for (const t of training) {
+          await saveTrainingSchedule(t);
+        }
+      } catch (error) {
+        console.error('Supabase save error for training schedules:', error);
+      }
+      return true;
+    }
     return this.saveData('trainingSchedules', training, saveTrainingSchedule);
   },
 

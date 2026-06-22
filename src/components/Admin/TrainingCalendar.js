@@ -88,7 +88,7 @@ const TrainingCalendar = () => {
         localStorage.setItem('attendances', JSON.stringify([...existingAttendances, ...attendanceRecords]));
       }
 
-      await DataManager.saveTrainingSchedule(trainingData);
+      await DataManager.saveTrainingSchedule(updatedTrainings);
       setTrainings(updatedTrainings);
       // Reload trainings to ensure we have the latest data
       await loadTrainings();
