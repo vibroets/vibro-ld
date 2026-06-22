@@ -29,13 +29,13 @@ const ParticipantEnrollment = () => {
     // Load L&T content from Quiz, Video, and Training libraries
     const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
     const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-    const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+    const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
     
     // Combine all L&T content into a single array with type labels
     const allLtContent = [
       ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
       ...videos.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
-      ...trainingItems.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Library' }))
+      ...trainingSchedules.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Calendar' }))
     ];
     
     const storedParticipants = JSON.parse(localStorage.getItem('users') || '[]');

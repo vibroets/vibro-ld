@@ -34,7 +34,7 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     capacity: 20,
     department: '',
     location: '',
-    participants: [],
+    participants: [], // Optional - participants can be assigned later via Participant Enrollment
     ltContentIds: [] // IDs of linked L&T content (quizzes, videos, training items)
   });
 

@@ -33,6 +33,7 @@ const TrainingCalendar = () => {
     const trainingData = {
       ...formData,
       id: scheduleMode === 'edit' && editingTraining ? editingTraining.id : `training-${Date.now()}`,
+      status: scheduleMode === 'edit' && editingTraining ? editingTraining.status : 'pending',
       createdAt: scheduleMode === 'edit' && editingTraining ? editingTraining.createdAt : new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
