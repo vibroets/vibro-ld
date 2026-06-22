@@ -225,6 +225,7 @@ const TrainingCalendar = () => {
   };
 
   const getStatusColor = (status) => {
+    // eslint-disable-next-line no-unused-vars
     const colors = {
       'pending': 'bg-yellow-500',
       'approved': 'bg-green-500',
@@ -235,6 +236,7 @@ const TrainingCalendar = () => {
   };
 
   const getStatusLabel = (status) => {
+    // eslint-disable-next-line no-unused-vars
     const labels = {
       'pending': 'Pending Approval',
       'approved': 'Approved',
