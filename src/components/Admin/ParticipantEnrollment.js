@@ -589,6 +589,7 @@ const ParticipantEnrollment = () => {
                     value={formData.contentId}
                     onChange={(e) => {
                       const selected = ltContent.find(c => c.id === e.target.value);
+                      console.log('Participant Enrollment: Selected content:', selected);
                       setFormData({...formData, contentId: e.target.value, contentType: selected?.contentType || ''});
                     }}
                     required
@@ -596,11 +597,14 @@ const ParticipantEnrollment = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select content</option>
-                    {ltContent.map(content => (
-                      <option key={content.id} value={content.id}>
-                        {content.libraryName} - {content.title}
-                      </option>
-                    ))}
+                    {ltContent.map(content => {
+                      console.log('Participant Enrollment: Rendering option for:', content);
+                      return (
+                        <option key={content.id} value={content.id}>
+                          {content.libraryName} - {content.title}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               </div>
