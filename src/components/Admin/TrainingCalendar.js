@@ -18,13 +18,16 @@ const TrainingCalendar = () => {
   }, []);
 
   const loadTrainings = async () => {
+    console.log('Loading trainings...');
     try {
       const storedTrainings = await DataManager.getTrainingSchedules();
+      console.log('Loaded from DataManager:', storedTrainings);
       setTrainings(storedTrainings);
     } catch (error) {
       console.error('Error loading trainings:', error);
       // Fallback to localStorage
       const storedTrainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      console.log('Loaded from localStorage:', storedTrainings);
       setTrainings(storedTrainings);
     }
   };
@@ -89,9 +92,11 @@ const TrainingCalendar = () => {
       }
 
       await DataManager.saveTrainingSchedule(updatedTrainings);
+      console.log('Saved trainings:', updatedTrainings);
       setTrainings(updatedTrainings);
       // Reload trainings to ensure we have the latest data
       await loadTrainings();
+      console.log('Reloaded trainings:', trainings);
       setShowCreateModal(false);
       setEditingTraining(null);
       setScheduleMode('create');
