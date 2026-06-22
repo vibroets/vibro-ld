@@ -85,6 +85,8 @@ const ApprovalWorkflow = () => {
           const oldCurrentIndex = oldLevels.indexOf(level);
           
           if (oldCurrentIndex === oldLevels.length - 1) {
+            // Final approval - update training status
+            updateTrainingStatus(approval, 'approved');
             return {
               ...approval,
               status: 'approved',
@@ -104,7 +106,8 @@ const ApprovalWorkflow = () => {
         }
         
         if (currentLevelIndex === approvalLevels.length - 1) {
-          // Final approval
+          // Final approval - update training status
+          updateTrainingStatus(approval, 'approved');
           return {
             ...approval,
             status: 'approved',
@@ -131,10 +134,28 @@ const ApprovalWorkflow = () => {
     setApprovals(updatedApprovals);
   };
 
+  const updateTrainingStatus = (approval, status) => {
+    if (approval.type === 'training-request' && approval.trainingTitle) {
+      const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      const updatedTrainings = trainingSchedules.map(training => {
+        if (training.title === approval.trainingTitle) {
+          return {
+            ...training,
+            status: status
+          };
+        }
+        return training;
+      });
+      localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
+    }
+  };
+
   const handleReject = (approvalId) => {
     if (window.confirm('Are you sure you want to reject this request?')) {
       const updatedApprovals = approvals.map(approval => {
         if (approvalId === approval.id) {
+          // Update training status to cancelled
+          updateTrainingStatus(approval, 'cancelled');
           return {
             ...approval,
             status: 'rejected',

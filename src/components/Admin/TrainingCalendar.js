@@ -224,6 +224,26 @@ const TrainingCalendar = () => {
     return colors[type] || 'bg-gray-500';
   };
 
+  const getStatusColor = (status) => {
+    const colors = {
+      'pending': 'bg-yellow-500',
+      'approved': 'bg-green-500',
+      'cancelled': 'bg-red-500',
+      'rejected': 'bg-red-500'
+    };
+    return colors[status] || 'bg-gray-500';
+  };
+
+  const getStatusLabel = (status) => {
+    const labels = {
+      'pending': 'Pending Approval',
+      'approved': 'Approved',
+      'cancelled': 'Cancelled',
+      'rejected': 'Rejected'
+    };
+    return labels[status] || status;
+  };
+
   const todayTrainings = trainings.filter(training => {
     if (!training.startDate) return false;
     const trainingDate = new Date(training.startDate);

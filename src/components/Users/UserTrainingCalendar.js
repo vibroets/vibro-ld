@@ -30,11 +30,13 @@ const UserTrainingCalendar = () => {
       
       const user = JSON.parse(userData);
       
-      // Filter trainings where the user is a participant
+      // Filter trainings where the user is a participant AND training is approved
       const userTrainings = storedTrainings.filter(training => {
         const participants = training.participants || [];
         if (!Array.isArray(participants)) return false;
-        return participants.some(p => p.id === user.id || p.userId === user.id);
+        const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
+        const isApproved = training.status === 'approved' || !training.status;
+        return isParticipant && isApproved;
       });
       
       setTrainings(userTrainings);
@@ -51,7 +53,9 @@ const UserTrainingCalendar = () => {
       const userTrainings = storedTrainings.filter(training => {
         const participants = training.participants || [];
         if (!Array.isArray(participants)) return false;
-        return participants.some(p => p.id === user.id || p.userId === user.id);
+        const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
+        const isApproved = training.status === 'approved' || !training.status;
+        return isParticipant && isApproved;
       });
       
       setTrainings(userTrainings);
