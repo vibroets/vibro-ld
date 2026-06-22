@@ -50,6 +50,13 @@ export const DataManager = {
   async getTrainingSchedules() {
     try {
       const data = await getTrainingSchedules();
+      // If Supabase returns empty array, fallback to localStorage
+      if (!data || data.length === 0) {
+        console.log('Supabase returned empty, falling back to localStorage');
+        const localData = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+        console.log('Loaded from localStorage:', localData);
+        return localData;
+      }
       return data;
     } catch (error) {
       console.error('Supabase error for trainingSchedules:', error);
