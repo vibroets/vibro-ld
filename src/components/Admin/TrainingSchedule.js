@@ -122,10 +122,12 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     if (!formData.startDate || !formData.startTime || !formData.duration) return;
     
     const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    // Ensure trainingSchedules is an array
+    const trainingSchedulesArray = Array.isArray(trainingSchedules) ? trainingSchedules : [];
     let conflicts = [];
 
     if (field === 'trainerId' && value) {
-      const trainerTrainings = trainingSchedules.filter(t => 
+      const trainerTrainings = trainingSchedulesArray.filter(t => 
         t.trainerId === value && 
         t.id !== trainingData?.id &&
         t.startDate === formData.startDate
@@ -136,7 +138,7 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     }
 
     if (field === 'venueId' && value) {
-      const venueTrainings = trainingSchedules.filter(t => 
+      const venueTrainings = trainingSchedulesArray.filter(t => 
         t.venueId === value && 
         t.id !== trainingData?.id &&
         t.startDate === formData.startDate

@@ -137,7 +137,9 @@ const ApprovalWorkflow = () => {
   const updateTrainingStatus = (approval, status) => {
     if (approval.type === 'training-request' && approval.trainingId) {
       const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
-      const updatedTrainings = trainingSchedules.map(training => {
+      // Ensure trainingSchedules is an array
+      const trainingSchedulesArray = Array.isArray(trainingSchedules) ? trainingSchedules : [];
+      const updatedTrainings = trainingSchedulesArray.map(training => {
         if (training.id === approval.trainingId) {
           return {
             ...training,
