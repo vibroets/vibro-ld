@@ -153,6 +153,8 @@ const ApprovalWorkflow = () => {
       });
       console.log('Updated trainingSchedules:', updatedTrainings);
       localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
+      // Dispatch custom event to notify other components
+      window.dispatchEvent(new CustomEvent('trainingUpdated', { detail: { trainingId: approval.trainingId } }));
     }
   };
 

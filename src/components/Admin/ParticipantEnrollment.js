@@ -34,6 +34,16 @@ const ParticipantEnrollment = () => {
     return () => window.removeEventListener('focus', handleFocus);
   }, []);
 
+  // Reload data when training is updated via custom event
+  useEffect(() => {
+    const handleTrainingUpdated = () => {
+      console.log('Participant Enrollment: Training updated event received, reloading...');
+      loadData();
+    };
+    window.addEventListener('trainingUpdated', handleTrainingUpdated);
+    return () => window.removeEventListener('trainingUpdated', handleTrainingUpdated);
+  }, []);
+
   const loadData = () => {
     console.log('Participant Enrollment: Loading data...');
     // Load L&T content from Quiz, Video, and Training libraries
