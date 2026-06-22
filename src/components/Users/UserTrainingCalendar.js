@@ -157,8 +157,6 @@ const UserTrainingCalendar = () => {
     if (!currentUser || !selectedTraining) return;
 
     try {
-      const attendances = await DataManager.getAttendances();
-      
       const newAttendance = {
         id: `attendance-${Date.now()}`,
         trainingId: selectedTraining.id,
