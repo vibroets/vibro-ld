@@ -25,11 +25,23 @@ const ParticipantEnrollment = () => {
     loadData();
   }, []);
 
+  // Reload data when window regains focus (to catch updates from other components)
+  useEffect(() => {
+    const handleFocus = () => {
+      loadData();
+    };
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
   const loadData = () => {
+    console.log('Participant Enrollment: Loading data...');
     // Load L&T content from Quiz, Video, and Training libraries
     const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
     const videos = JSON.parse(localStorage.getItem('videos') || '[]');
     const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    
+    console.log('Participant Enrollment: Loaded trainingSchedules:', trainingSchedules);
     
     // Ensure all data are arrays
     const quizzesArray = Array.isArray(quizzes) ? quizzes : [];
@@ -39,12 +51,16 @@ const ParticipantEnrollment = () => {
     // Show all trainings regardless of status for now (for debugging)
     const allTrainings = trainingSchedulesArray;
     
+    console.log('Participant Enrollment: allTrainings:', allTrainings);
+    
     // Combine all L&T content into a single array with type labels
     const allLtContent = [
       ...quizzesArray.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
       ...videosArray.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
       ...allTrainings.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Calendar' }))
     ];
+    
+    console.log('Participant Enrollment: allLtContent:', allLtContent);
     
     const storedParticipants = JSON.parse(localStorage.getItem('users') || '[]');
     const storedEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
