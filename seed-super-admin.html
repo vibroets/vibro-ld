@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seed Super Admin</title>
+</head>
+<body>
+    <h1>Seeding Super Admin...</h1>
+    <script>
+        const superAdmin = {
+            id: 'admin-super-001',
+            name: 'Vibro Super Admin',
+            email: 'vibro.chennai@gmail.com',
+            password: 'Vibro@123',
+            isAdmin: true,
+            isSuperAdmin: true,
+            moduleAccess: {
+                userModule: true,
+                trainingSchedule: true,
+                trainingCalendar: true,
+                participantEnrollment: true,
+                assessmentManagement: true,
+                attendanceManagement: true,
+                venueManagement: true,
+                trainerManagement: true,
+                approvalWorkflow: true,
+                ltModule: true,
+                trainingAnalytics: true,
+                reports: true
+            },
+            createdAt: new Date().toISOString()
+        };
+
+        localStorage.setItem('currentAdmin', JSON.stringify(superAdmin));
+        
+        const admins = JSON.parse(localStorage.getItem('admins') || '[]');
+        const existingAdmin = admins.find(a => a.email === superAdmin.email);
+        if (!existingAdmin) {
+            admins.push(superAdmin);
+            localStorage.setItem('admins', JSON.stringify(admins));
+        }
+
+        console.log('Super admin created:', superAdmin);
+        alert('Super Admin created!\n\nEmail: vibro.chennai@gmail.com\nPassword: Vibro@123\n\nYou can now login at http://192.168.1.5:3000/login');
+    </script>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Seed Test User</title>
+</head>
+<body>
+    <h1>Seeding Test User...</h1>
+    <script>
+        const testUser = {
+            id: 'user-test-001',
+            name: 'Test User',
+            email: 'test@vibro.com',
+            phone: '9876543210',
+            password: '12345',
+            designation: 'employee',
+            isAdmin: false,
+            isSuperAdmin: false,
+            moduleAccess: {
+                userModule: true,
+                trainingSchedule: true,
+                trainingCalendar: true,
+                participantEnrollment: true,
+                assessmentManagement: true,
+                attendanceManagement: true,
+                venueManagement: true,
+                trainerManagement: true,
+                approvalWorkflow: true,
+                ltModule: true,
+                trainingAnalytics: true,
+                reports: true
+            },
+            createdAt: new Date().toISOString()
+        };
+
+        const users = JSON.parse(localStorage.getItem('users') || '[]');
+        users.push(testUser);
+        localStorage.setItem('users', JSON.stringify(users));
+
+        console.log('Test user created:', testUser);
+        alert('Test user created!\n\nMobile: 9876543210\nPassword: 12345\n\nYou can now login on mobile.');
+    </script>
+</body>
+</html>

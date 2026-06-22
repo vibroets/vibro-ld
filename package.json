@@ -1,0 +1,54 @@
+{
+  "name": "learning-training-software",
+  "version": "1.0.0",
+  "private": true,
+  "homepage": ".",
+  "dependencies": {
+    "@capacitor/android": "^8.4.1",
+    "@capacitor/cli": "^8.4.1",
+    "@capacitor/core": "^8.4.1",
+    "@capgo/capacitor-native-biometric": "^8.4.11",
+    "autoprefixer": "^10.4.14",
+    "firebase": "^12.15.0",
+    "html2canvas": "^1.4.1",
+    "lucide-react": "^0.263.1",
+    "pdfjs-dist": "^3.11.174",
+    "postcss": "^8.4.24",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-router-dom": "^6.3.0",
+    "react-scripts": "5.0.1",
+    "tailwindcss": "^3.3.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "build:user": "npm run build && node scripts/build-user.js",
+    "android:sync": "npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:build": "npm run build && npm run android:sync",
+    "android:user:add": "node scripts/cap-user.js add android",
+    "android:user:sync": "npm run build:user && node scripts/cap-user.js sync android",
+    "android:user:open": "node scripts/cap-user.js open android",
+    "android:user:build": "npm run android:user:sync && npm run android:user:open"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

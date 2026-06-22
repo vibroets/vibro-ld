@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#d97706" />
+    <meta name="color-scheme" content="light" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Vibro User" />
+    <meta name="description" content="Vibro User Training Module" />
+    <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
+    <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
+    <title>Vibro User</title>
+    <style>
+      /* Prevent pull-to-refresh and overscroll on mobile */
+      html, body {
+        overscroll-behavior: none;
+        -webkit-overflow-scrolling: touch;
+      }
+      #root-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f9fafb;
+        z-index: 9999;
+        transition: opacity 0.3s ease;
+      }
+      #root-splash.hidden { opacity: 0; pointer-events: none; }
+    </style>
+    <script>
+      // Mark this as the user-module APK build so the app only shows user routes
+      try {
+        sessionStorage.setItem('appMode', 'user');
+      } catch (e) {}
+    </script>
+  </head>
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root-splash">
+      <div style="text-align:center">
+        <div style="font-size:1.5rem;font-weight:700;color:#d97706;margin-bottom:0.5rem">Vibro User</div>
+        <div style="color:#6b7280">Loading...</div>
+      </div>
+    </div>
+    <div id="root"></div>
+    <script>
+      // Hide splash screen once React mounts
+      window.addEventListener('load', function () {
+        setTimeout(function () {
+          var splash = document.getElementById('root-splash');
+          if (splash) splash.classList.add('hidden');
+        }, 300);
+      });
+    </script>
+  </body>
+</html>
