@@ -135,12 +135,15 @@ const ApprovalWorkflow = () => {
   };
 
   const updateTrainingStatus = (approval, status) => {
+    console.log('updateTrainingStatus called with approval:', approval, 'status:', status);
     if (approval.type === 'training-request' && approval.trainingId) {
       const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      console.log('Current trainingSchedules before update:', trainingSchedules);
       // Ensure trainingSchedules is an array
       const trainingSchedulesArray = Array.isArray(trainingSchedules) ? trainingSchedules : [];
       const updatedTrainings = trainingSchedulesArray.map(training => {
         if (training.id === approval.trainingId) {
+          console.log('Found training to update:', training);
           return {
             ...training,
             status: status
@@ -148,6 +151,7 @@ const ApprovalWorkflow = () => {
         }
         return training;
       });
+      console.log('Updated trainingSchedules:', updatedTrainings);
       localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
     }
   };
