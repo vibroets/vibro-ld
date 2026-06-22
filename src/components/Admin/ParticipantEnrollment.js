@@ -31,19 +31,27 @@ const ParticipantEnrollment = () => {
     const videos = JSON.parse(localStorage.getItem('videos') || '[]');
     const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
     
+    // Ensure all data are arrays
+    const quizzesArray = Array.isArray(quizzes) ? quizzes : [];
+    const videosArray = Array.isArray(videos) ? videos : [];
+    const trainingSchedulesArray = Array.isArray(trainingSchedules) ? trainingSchedules : [];
+    
     // Combine all L&T content into a single array with type labels
     const allLtContent = [
-      ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
-      ...videos.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
-      ...trainingSchedules.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Calendar' }))
+      ...quizzesArray.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
+      ...videosArray.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
+      ...trainingSchedulesArray.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Calendar' }))
     ];
     
     const storedParticipants = JSON.parse(localStorage.getItem('users') || '[]');
     const storedEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
     
+    const participantsArray = Array.isArray(storedParticipants) ? storedParticipants : [];
+    const enrollmentsArray = Array.isArray(storedEnrollments) ? storedEnrollments : [];
+    
     setLtContent(allLtContent);
-    setParticipants(storedParticipants);
-    setEnrollments(storedEnrollments);
+    setParticipants(participantsArray);
+    setEnrollments(enrollmentsArray);
   };
 
   const handleSeedData = () => {
