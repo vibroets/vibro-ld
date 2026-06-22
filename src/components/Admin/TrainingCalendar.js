@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock, Users, Plus, Filter, Download, Database } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, Users, Plus, Filter, Download, Database, Trash2 } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import TrainingSchedule from './TrainingSchedule';
 import { seedTrainingData } from '../../utils/seedTrainingData';
