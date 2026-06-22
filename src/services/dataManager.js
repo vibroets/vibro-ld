@@ -101,3 +101,5 @@ export const DataManager = {
     return this.saveData('certificates', certificate, saveCertificate);
   }
 };
+
+export default DataManager;
