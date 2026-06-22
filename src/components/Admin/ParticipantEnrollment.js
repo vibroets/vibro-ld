@@ -426,7 +426,9 @@ const ParticipantEnrollment = () => {
                 {ltContent.length > 0 ? (
                   ltContent.map((content) => {
                     const contentEnrollments = enrollments.filter(e => e.contentId === content.id);
-                    if (contentEnrollments.length === 0) return null;
+                    // Show approved trainings even without enrollments
+                    if (contentEnrollments.length === 0 && content.contentType !== 'training') return null;
+                    if (content.contentType === 'training' && content.status !== 'approved') return null;
                     
                     return (
                       <div key={content.id} className="p-6">
@@ -435,6 +437,11 @@ const ParticipantEnrollment = () => {
                             <h3 className="text-lg font-semibold text-gray-900">{content.title}</h3>
                             <p className="text-sm text-gray-600">
                               {content.libraryName} - {content.contentType}
+                              {content.contentType === 'training' && content.status && (
+                                <span className="ml-2 px-2 py-1 text-xs font-medium rounded-full bg-green-100 text-green-800">
+                                  {content.status}
+                                </span>
+                              )}
                             </p>
                           </div>
                           <button
