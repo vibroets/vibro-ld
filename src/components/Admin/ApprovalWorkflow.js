@@ -135,10 +135,10 @@ const ApprovalWorkflow = () => {
   };
 
   const updateTrainingStatus = (approval, status) => {
-    if (approval.type === 'training-request' && approval.trainingTitle) {
+    if (approval.type === 'training-request' && approval.trainingId) {
       const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
       const updatedTrainings = trainingSchedules.map(training => {
-        if (training.title === approval.trainingTitle) {
+        if (training.id === approval.trainingId) {
           return {
             ...training,
             status: status
