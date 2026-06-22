@@ -94,9 +94,6 @@ const TrainingCalendar = () => {
       await DataManager.saveTrainingSchedule(updatedTrainings);
       console.log('Saved trainings:', updatedTrainings);
       setTrainings(updatedTrainings);
-      // Reload trainings to ensure we have the latest data
-      await loadTrainings();
-      console.log('Reloaded trainings:', trainings);
       setShowCreateModal(false);
       setEditingTraining(null);
       setScheduleMode('create');
@@ -152,8 +149,6 @@ const TrainingCalendar = () => {
 
       localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
       setTrainings(updatedTrainings);
-      // Reload trainings to ensure we have the latest data
-      await loadTrainings();
       setShowCreateModal(false);
       setEditingTraining(null);
       setScheduleMode('create');
