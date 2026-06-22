@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, MapPin, UserCheck, QrCode, Camera, MapPin as LocationIcon, Database } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import { seedTrainingData } from '../../utils/seedTrainingData';
+import DataManager from '../../services/dataManager';
 
 const AttendanceManagement = () => {
   const [attendances, setAttendances] = useState([]);
@@ -13,23 +14,41 @@ const AttendanceManagement = () => {
     loadData();
   }, []);
 
-  const loadData = () => {
-    const storedAttendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-    
-    // Load L&T content from Quiz, Video, and Training libraries
-    const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-    const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-    const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-    
-    // Combine all L&T content into a single array with type labels
-    const allLtContent = [
-      ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
-      ...videos.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
-      ...trainingItems.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Library' }))
-    ];
-    
-    setAttendances(storedAttendances);
-    setLtContent(allLtContent);
+  const loadData = async () => {
+    try {
+      const storedAttendances = await DataManager.getAttendances();
+      
+      // Load L&T content from Quiz, Video, and Training libraries
+      const quizzes = await DataManager.getQuizzes();
+      const videos = await DataManager.getVideos();
+      const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+      
+      // Combine all L&T content into a single array with type labels
+      const allLtContent = [
+        ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
+        ...videos.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
+        ...trainingItems.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Library' }))
+      ];
+      
+      setAttendances(storedAttendances);
+      setLtContent(allLtContent);
+    } catch (error) {
+      console.error('Error loading attendance data:', error);
+      // Fallback to localStorage
+      const storedAttendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+      const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
+      const videos = JSON.parse(localStorage.getItem('videos') || '[]');
+      const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+      
+      const allLtContent = [
+        ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
+        ...videos.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
+        ...trainingItems.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Library' }))
+      ];
+      
+      setAttendances(storedAttendances);
+      setLtContent(allLtContent);
+    }
   };
 
   const handleSeedData = () => {
@@ -40,7 +59,7 @@ const AttendanceManagement = () => {
     }
   };
 
-  const handleCheckIn = (attendanceId) => {
+  const handleCheckIn = async (attendanceId) => {
     const updatedAttendances = attendances.map(att => {
       if (att.id === attendanceId) {
         return {
@@ -52,11 +71,21 @@ const AttendanceManagement = () => {
       }
       return att;
     });
-    localStorage.setItem('attendances', JSON.stringify(updatedAttendances));
+    
+    try {
+      const updatedAttendance = updatedAttendances.find(att => att.id === attendanceId);
+      if (updatedAttendance) {
+        await DataManager.saveAttendance(updatedAttendance);
+      }
+    } catch (error) {
+      console.error('Error saving attendance:', error);
+      localStorage.setItem('attendances', JSON.stringify(updatedAttendances));
+    }
+    
     setAttendances(updatedAttendances);
   };
 
-  const handleCheckOut = (attendanceId) => {
+  const handleCheckOut = async (attendanceId) => {
     const updatedAttendances = attendances.map(att => {
       if (att.id === attendanceId) {
         return {
@@ -67,7 +96,15 @@ const AttendanceManagement = () => {
       }
       return att;
     });
-    localStorage.setItem('attendances', JSON.stringify(updatedAttendances));
+    try {
+      const updatedAttendance = updatedAttendances.find(att => att.id === attendanceId);
+      if (updatedAttendance) {
+        await DataManager.saveAttendance(updatedAttendance);
+      }
+    } catch (error) {
+      console.error('Error saving attendance:', error);
+      localStorage.setItem('attendances', JSON.stringify(updatedAttendances));
+    }
     setAttendances(updatedAttendances);
   };
 

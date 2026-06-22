@@ -4,6 +4,7 @@ import { BookOpen, Video, FileText, LogOut, TrendingUp, Award, CheckCircle, XCir
 import Sidebar from '../Sidebar';
 import MobileNav from '../MobileNav';
 import { triggerUserSync, teardownUserAutoSync, isFirebaseConfigured } from '../../services/dataSync';
+import DataManager from '../../services/dataManager';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -35,7 +36,7 @@ const UserDashboard = () => {
   }, []);
 
   useEffect(() => {
-    const loadAssignments = () => {
+    const loadAssignments = async () => {
       // Check if user is logged in
       const userData = localStorage.getItem('currentUser');
       if (!userData) {
@@ -45,26 +46,27 @@ const UserDashboard = () => {
       const currentUser = JSON.parse(userData);
       setUser(currentUser);
 
-      // Load all source data
-      const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-      const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-      const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]').map(item => ({
-        ...item,
-        selectedUsers: Array.isArray(item.selectedUsers) ? item.selectedUsers : [],
-        sharedWith: Array.isArray(item.sharedWith) ? item.sharedWith : [],
-        allowDownload: item.allowDownload ?? false,
-        allowPrint: item.allowPrint ?? false,
-        allowShare: item.allowShare ?? false,
-        followUpType: item.followUpType || 'quiz',
-        followUpId: item.followUpId || '',
-        questionsPerUser: item.questionsPerUser || 15,
-        timeLimit: item.timeLimit || 30,
-        passPercentage: item.passPercentage || 60,
-        assetType: item.assetType || 'document',
-        sourceType: item.sourceType || 'url',
-        type: 'training'
-      }));
-      const allResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+      // Load all source data using DataManager
+      try {
+        const quizzes = await DataManager.getQuizzes();
+        const videos = await DataManager.getVideos();
+        const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]').map(item => ({
+          ...item,
+          selectedUsers: Array.isArray(item.selectedUsers) ? item.selectedUsers : [],
+          sharedWith: Array.isArray(item.sharedWith) ? item.sharedWith : [],
+          allowDownload: item.allowDownload ?? false,
+          allowPrint: item.allowPrint ?? false,
+          allowShare: item.allowShare ?? false,
+          followUpType: item.followUpType || 'quiz',
+          followUpId: item.followUpId || '',
+          questionsPerUser: item.questionsPerUser || 15,
+          timeLimit: item.timeLimit || 30,
+          passPercentage: item.passPercentage || 60,
+          assetType: item.assetType || 'document',
+          sourceType: item.sourceType || 'url',
+          type: 'training'
+        }));
+        const allResults = await DataManager.getQuizResults();
 
       // Helper function to get correct source info for a result
       const getSourceInfo = (quizId) => {
@@ -104,7 +106,7 @@ const UserDashboard = () => {
     // Save migrated results if any changes were made
     if (needsMigration) {
       try {
-        localStorage.setItem('quizResults', JSON.stringify(migratedResults));
+        await DataManager.saveQuizResult(migratedResults[0]);
       } catch (e) {
         // ignore storage errors
       }
@@ -134,9 +136,8 @@ const UserDashboard = () => {
       userResults.sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
 
       // Load certificates for current user - only show certificates for passed quizzes
-      const allCertificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+      const allCertificates = await DataManager.getCertificates(currentUser.id);
       const userCertificates = allCertificates
-        .filter(cert => cert.userId === currentUser.id)
         .filter(cert => {
           // Only show certificates where the score meets the pass threshold
           const passThreshold = cert.passPercentage || 70;
@@ -149,6 +150,35 @@ const UserDashboard = () => {
       setUserTrainings(assignedTrainings);
       setResults(userResults);
       setCertificates(userCertificates);
+      } catch (error) {
+        console.error('Error loading assignments:', error);
+        // Fallback to localStorage
+        const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
+        const videos = JSON.parse(localStorage.getItem('videos') || '[]');
+        const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+        const allResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+        const allCertificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+        
+        // Continue with localStorage data...
+        const assignedQuizzes = quizzes.filter(quiz => 
+          quiz.selectedUsers && quiz.selectedUsers.includes(currentUser.id)
+        );
+        const assignedVideos = videos.filter(video => 
+          video.selectedUsers && video.selectedUsers.includes(currentUser.id)
+        );
+        const assignedTrainings = trainingItems.filter(item => 
+          (item.selectedUsers && item.selectedUsers.includes(currentUser.id)) ||
+          (item.sharedWith && item.sharedWith.includes(currentUser.id))
+        );
+        const userResults = allResults.filter(result => result.userId === currentUser.id);
+        const userCertificates = allCertificates.filter(cert => cert.userId === currentUser.id);
+        
+        setUserQuizzes(assignedQuizzes);
+        setUserVideos(assignedVideos);
+        setUserTrainings(assignedTrainings);
+        setResults(userResults);
+        setCertificates(userCertificates);
+      }
     };
 
     loadAssignments();

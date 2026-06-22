@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, CheckCircle, QrCode, MapPin as LocationIcon } from 'lucide-react';
 import Sidebar from '../Sidebar';
+import DataManager from '../../services/dataManager';
 
 const UserTrainingCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -21,22 +22,41 @@ const UserTrainingCalendar = () => {
     }
   }, []);
 
-  const loadTrainings = useCallback(() => {
-    const storedTrainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
-    const userData = localStorage.getItem('currentUser');
-    if (!userData) return;
-    
-    const user = JSON.parse(userData);
-    
-    // Filter trainings where the user is a participant
-    const userTrainings = storedTrainings.filter(training => {
-      const participants = training.participants || [];
-      if (!Array.isArray(participants)) return false;
-      return participants.some(p => p.id === user.id || p.userId === user.id);
-    });
-    
-    setTrainings(userTrainings);
-    loadAttendanceStatus(user.id);
+  const loadTrainings = useCallback(async () => {
+    try {
+      const storedTrainings = await DataManager.getTrainingSchedules();
+      const userData = localStorage.getItem('currentUser');
+      if (!userData) return;
+      
+      const user = JSON.parse(userData);
+      
+      // Filter trainings where the user is a participant
+      const userTrainings = storedTrainings.filter(training => {
+        const participants = training.participants || [];
+        if (!Array.isArray(participants)) return false;
+        return participants.some(p => p.id === user.id || p.userId === user.id);
+      });
+      
+      setTrainings(userTrainings);
+      loadAttendanceStatus(user.id);
+    } catch (error) {
+      console.error('Error loading trainings:', error);
+      // Fallback to localStorage
+      const storedTrainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      const userData = localStorage.getItem('currentUser');
+      if (!userData) return;
+      
+      const user = JSON.parse(userData);
+      
+      const userTrainings = storedTrainings.filter(training => {
+        const participants = training.participants || [];
+        if (!Array.isArray(participants)) return false;
+        return participants.some(p => p.id === user.id || p.userId === user.id);
+      });
+      
+      setTrainings(userTrainings);
+      loadAttendanceStatus(user.id);
+    }
   }, []);
 
   useEffect(() => {
@@ -44,15 +64,28 @@ const UserTrainingCalendar = () => {
     loadCurrentUser();
   }, [loadTrainings, loadCurrentUser]);
 
-  const loadAttendanceStatus = (userId) => {
-    const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-    const statusMap = {};
-    attendances.forEach(att => {
-      if (att.userId === userId) {
-        statusMap[att.trainingId] = att.status;
-      }
-    });
-    setAttendanceStatus(statusMap);
+  const loadAttendanceStatus = async (userId) => {
+    try {
+      const attendances = await DataManager.getAttendances();
+      const statusMap = {};
+      attendances.forEach(att => {
+        if (att.userId === userId) {
+          statusMap[att.trainingId] = att.status;
+        }
+      });
+      setAttendanceStatus(statusMap);
+    } catch (error) {
+      console.error('Error loading attendance status:', error);
+      // Fallback to localStorage
+      const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+      const statusMap = {};
+      attendances.forEach(att => {
+        if (att.userId === userId) {
+          statusMap[att.trainingId] = att.status;
+        }
+      });
+      setAttendanceStatus(statusMap);
+    }
   };
 
   const getDaysInMonth = (date) => {
@@ -120,35 +153,65 @@ const UserTrainingCalendar = () => {
     );
   };
 
-  const handleConfirmCheckIn = () => {
+  const handleConfirmCheckIn = async () => {
     if (!currentUser || !selectedTraining) return;
 
-    const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-    
-    const newAttendance = {
-      id: `attendance-${Date.now()}`,
-      trainingId: selectedTraining.id,
-      userId: currentUser.id,
-      userName: currentUser.name || currentUser.email,
-      checkInTime: new Date().toISOString(),
-      checkInMethod: location ? 'location' : 'manual',
-      location: location,
-      status: 'present'
-    };
+    try {
+      const attendances = await DataManager.getAttendances();
+      
+      const newAttendance = {
+        id: `attendance-${Date.now()}`,
+        trainingId: selectedTraining.id,
+        userId: currentUser.id,
+        userName: currentUser.name || currentUser.email,
+        checkInTime: new Date().toISOString(),
+        checkInMethod: location ? 'location' : 'manual',
+        location: location,
+        status: 'present'
+      };
 
-    attendances.push(newAttendance);
-    localStorage.setItem('attendances', JSON.stringify(attendances));
-    
-    setAttendanceStatus(prev => ({
-      ...prev,
-      [selectedTraining.id]: 'present'
-    }));
-    
-    setCheckInSuccess(true);
-    setTimeout(() => {
-      setShowCheckInModal(false);
-      setSelectedTraining(null);
-    }, 2000);
+      await DataManager.saveAttendance(newAttendance);
+      
+      setAttendanceStatus(prev => ({
+        ...prev,
+        [selectedTraining.id]: 'present'
+      }));
+      
+      setCheckInSuccess(true);
+      setTimeout(() => {
+        setShowCheckInModal(false);
+        setSelectedTraining(null);
+      }, 2000);
+    } catch (error) {
+      console.error('Error saving attendance:', error);
+      // Fallback to localStorage
+      const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+      
+      const newAttendance = {
+        id: `attendance-${Date.now()}`,
+        trainingId: selectedTraining.id,
+        userId: currentUser.id,
+        userName: currentUser.name || currentUser.email,
+        checkInTime: new Date().toISOString(),
+        checkInMethod: location ? 'location' : 'manual',
+        location: location,
+        status: 'present'
+      };
+
+      attendances.push(newAttendance);
+      localStorage.setItem('attendances', JSON.stringify(attendances));
+      
+      setAttendanceStatus(prev => ({
+        ...prev,
+        [selectedTraining.id]: 'present'
+      }));
+      
+      setCheckInSuccess(true);
+      setTimeout(() => {
+        setShowCheckInModal(false);
+        setSelectedTraining(null);
+      }, 2000);
+    }
   };
 
   const handleShowQrCode = (training) => {

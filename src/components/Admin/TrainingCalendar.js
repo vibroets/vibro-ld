@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, Calendar, Clock, Users, Plus, Filter, Downlo
 import Sidebar from '../Sidebar';
 import TrainingSchedule from './TrainingSchedule';
 import { seedTrainingData } from '../../utils/seedTrainingData';
+import DataManager from '../../services/dataManager';
 
 const TrainingCalendar = () => {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -16,12 +17,19 @@ const TrainingCalendar = () => {
     loadTrainings();
   }, []);
 
-  const loadTrainings = () => {
-    const storedTrainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
-    setTrainings(storedTrainings);
+  const loadTrainings = async () => {
+    try {
+      const storedTrainings = await DataManager.getTrainingSchedules();
+      setTrainings(storedTrainings);
+    } catch (error) {
+      console.error('Error loading trainings:', error);
+      // Fallback to localStorage
+      const storedTrainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      setTrainings(storedTrainings);
+    }
   };
 
-  const handleSaveTraining = (formData) => {
+  const handleSaveTraining = async (formData) => {
     const trainingData = {
       ...formData,
       id: scheduleMode === 'edit' && editingTraining ? editingTraining.id : `training-${Date.now()}`,
@@ -29,59 +37,115 @@ const TrainingCalendar = () => {
       updatedAt: new Date().toISOString()
     };
 
-    let updatedTrainings;
-    if (scheduleMode === 'edit' && editingTraining) {
-      updatedTrainings = trainings.map(t => t.id === editingTraining.id ? trainingData : t);
-    } else {
-      updatedTrainings = [...trainings, trainingData];
-      
-      // Create approval request for new training
-      const approvalRequest = {
-        id: `approval-${Date.now()}`,
-        type: 'training-request',
-        title: `Training Request: ${formData.title}`,
-        requestedBy: 'Admin',
-        department: formData.department || 'Training',
-        status: 'pending',
-        currentLevel: 'manager',
-        approvalLevels: ['manager', 'hr', 'management'],
-        trainingTitle: formData.title,
-        expectedOutcome: formData.objectives,
-        amount: 0,
-        justification: formData.description,
-        createdAt: new Date().toISOString()
-      };
-      
-      const existingApprovals = JSON.parse(localStorage.getItem('approvals') || '[]');
-      localStorage.setItem('approvals', JSON.stringify([...existingApprovals, approvalRequest]));
+    try {
+      let updatedTrainings;
+      if (scheduleMode === 'edit' && editingTraining) {
+        updatedTrainings = trainings.map(t => t.id === editingTraining.id ? trainingData : t);
+      } else {
+        updatedTrainings = [...trainings, trainingData];
+        
+        // Create approval request for new training
+        const approvalRequest = {
+          id: `approval-${Date.now()}`,
+          type: 'training-request',
+          title: `Training Request: ${formData.title}`,
+          requestedBy: 'Admin',
+          department: formData.department || 'Training',
+          status: 'pending',
+          currentLevel: 'manager',
+          approvalLevels: ['manager', 'hr', 'management'],
+          trainingTitle: formData.title,
+          expectedOutcome: formData.objectives,
+          amount: 0,
+          justification: formData.description,
+          createdAt: new Date().toISOString()
+        };
+        
+        const existingApprovals = JSON.parse(localStorage.getItem('approvals') || '[]');
+        localStorage.setItem('approvals', JSON.stringify([...existingApprovals, approvalRequest]));
 
-      // Create attendance records for enrolled participants
-      const enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
-      const trainingEnrollments = enrollments.filter(e => e.trainingId === trainingData.id && e.status === 'approved');
-      
-      const attendanceRecords = trainingEnrollments.map(enrollment => ({
-        id: `attendance-${Date.now()}-${enrollment.participantId}`,
-        trainingId: trainingData.id,
-        participantId: enrollment.participantId,
-        participantName: enrollment.participantName || `Participant ${enrollment.participantId}`,
-        status: 'pending',
-        checkInTime: null,
-        checkOutTime: null,
-        checkInMethod: null,
-        location: formData.location || formData.venue,
-        notes: '',
-        createdAt: new Date().toISOString()
-      }));
-      
-      const existingAttendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-      localStorage.setItem('attendances', JSON.stringify([...existingAttendances, ...attendanceRecords]));
+        // Create attendance records for enrolled participants
+        const enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+        const trainingEnrollments = enrollments.filter(e => e.trainingId === trainingData.id && e.status === 'approved');
+        
+        const attendanceRecords = trainingEnrollments.map(enrollment => ({
+          id: `attendance-${Date.now()}-${enrollment.participantId}`,
+          trainingId: trainingData.id,
+          participantId: enrollment.participantId,
+          participantName: enrollment.participantName || `Participant ${enrollment.participantId}`,
+          status: 'pending',
+          checkInTime: null,
+          checkOutTime: null,
+          checkInMethod: null,
+          location: formData.location || formData.venue,
+          notes: '',
+          createdAt: new Date().toISOString()
+        }));
+        
+        const existingAttendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+        localStorage.setItem('attendances', JSON.stringify([...existingAttendances, ...attendanceRecords]));
+      }
+
+      await DataManager.saveTrainingSchedule(trainingData);
+      setTrainings(updatedTrainings);
+      setShowCreateModal(false);
+      setEditingTraining(null);
+      setScheduleMode('create');
+    } catch (error) {
+      console.error('Error saving training:', error);
+      // Fallback to localStorage
+      let updatedTrainings;
+      if (scheduleMode === 'edit' && editingTraining) {
+        updatedTrainings = trainings.map(t => t.id === editingTraining.id ? trainingData : t);
+      } else {
+        updatedTrainings = [...trainings, trainingData];
+        
+        const approvalRequest = {
+          id: `approval-${Date.now()}`,
+          type: 'training-request',
+          title: `Training Request: ${formData.title}`,
+          requestedBy: 'Admin',
+          department: formData.department || 'Training',
+          status: 'pending',
+          currentLevel: 'manager',
+          approvalLevels: ['manager', 'hr', 'management'],
+          trainingTitle: formData.title,
+          expectedOutcome: formData.objectives,
+          amount: 0,
+          justification: formData.description,
+          createdAt: new Date().toISOString()
+        };
+        
+        const existingApprovals = JSON.parse(localStorage.getItem('approvals') || '[]');
+        localStorage.setItem('approvals', JSON.stringify([...existingApprovals, approvalRequest]));
+
+        const enrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+        const trainingEnrollments = enrollments.filter(e => e.trainingId === trainingData.id && e.status === 'approved');
+        
+        const attendanceRecords = trainingEnrollments.map(enrollment => ({
+          id: `attendance-${Date.now()}-${enrollment.participantId}`,
+          trainingId: trainingData.id,
+          participantId: enrollment.participantId,
+          participantName: enrollment.participantName || `Participant ${enrollment.participantId}`,
+          status: 'pending',
+          checkInTime: null,
+          checkOutTime: null,
+          checkInMethod: null,
+          location: formData.location || formData.venue,
+          notes: '',
+          createdAt: new Date().toISOString()
+        }));
+        
+        const existingAttendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+        localStorage.setItem('attendances', JSON.stringify([...existingAttendances, ...attendanceRecords]));
+      }
+
+      localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
+      setTrainings(updatedTrainings);
+      setShowCreateModal(false);
+      setEditingTraining(null);
+      setScheduleMode('create');
     }
-
-    localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
-    setTrainings(updatedTrainings);
-    setShowCreateModal(false);
-    setEditingTraining(null);
-    setScheduleMode('create');
   };
 
   const handleEditTraining = (training) => {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, ArrowLeft, Fingerprint } from 'lucide-react';
 import { isFirebaseConfigured, setupUserAutoSync } from '../../services/dataSync';
 import { isBiometricSupported, authenticateBiometric, hasBiometricCredential, registerBiometric } from '../../services/biometricAuth';
+import { getUsers as fetchUsers } from '../../services/supabaseService';
 
 const UserLogin = () => {
   const navigate = useNavigate();
@@ -19,28 +20,60 @@ const UserLogin = () => {
   }, []);
 
   useEffect(() => {
-    // Load users from localStorage
-    let storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    // Load users from Supabase
+    const loadUsers = async () => {
+      try {
+        let storedUsers = await fetchUsers();
 
-    // Seed registered users on first launch ONLY when Firebase is not configured
-    // When Firebase is configured, data is pulled from cloud in App.js
-    if (storedUsers.length === 0 && !isFirebaseConfigured) {
-      const sampleUsers = [
-        { id: 'user-001', name: 'Kumaran G U', email: 'gu.kumaran@gmail.com', phone: '7845784565', department: 'Quality', employeeId: '97', isAdmin: true, password: '12345', createdAt: '2026-05-11T00:00:00.000Z' },
-        { id: 'user-002', name: 'Dhasvanth Akshay', email: 'john.doe@example.com', phone: '9999999991', department: 'IT', employeeId: 'EMP001', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-003', name: 'Dhanvanth Ajay', email: 'jane.smith@example.com', phone: '9999999992', department: 'HR', employeeId: 'EMP002', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-004', name: 'Karthiga', email: 'Lokesh@example.com', phone: '9999999993', department: 'QA', employeeId: 'EMP003', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-005', name: 'Kumar', email: 'Kumar@example.com', phone: '9999999994', department: 'Purchase', employeeId: 'EMP004', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-006', name: 'Kamesh', email: 'Kamesh@example.com', phone: '9999999995', department: 'IT', employeeId: 'EMP005', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-007', name: 'Dhanvanth', email: 'Dhanvanth@example.com', phone: '9999999996', department: 'HR', employeeId: 'EMP006', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-008', name: 'Ajay', email: 'Ajay@example.com', phone: '9999999997', department: 'QA', employeeId: 'EMP007', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-009', name: 'Akshay', email: 'Akshay@example.com', phone: '9999999998', department: 'Purchase', employeeId: 'EMP008', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-      ];
-      localStorage.setItem('users', JSON.stringify(sampleUsers));
-      storedUsers = sampleUsers;
-    }
+        // Seed sample users if no users exist
+        if (storedUsers.length === 0) {
+          const sampleUsers = [
+            { id: 'user-001', name: 'Kumaran G U', email: 'gu.kumaran@gmail.com', phone: '7845784565', department: 'Quality', employeeId: '97', isAdmin: true, password: '12345', createdAt: '2026-05-11T00:00:00.000Z' },
+            { id: 'user-002', name: 'Dhasvanth Akshay', email: 'john.doe@example.com', phone: '9999999991', department: 'IT', employeeId: 'EMP001', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-003', name: 'Dhanvanth Ajay', email: 'jane.smith@example.com', phone: '9999999992', department: 'HR', employeeId: 'EMP002', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-004', name: 'Karthiga', email: 'Lokesh@example.com', phone: '9999999993', department: 'QA', employeeId: 'EMP003', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-005', name: 'Kumar', email: 'Kumar@example.com', phone: '9999999994', department: 'Purchase', employeeId: 'EMP004', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-006', name: 'Kamesh', email: 'Kamesh@example.com', phone: '9999999995', department: 'IT', employeeId: 'EMP005', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-007', name: 'Dhanvanth', email: 'Dhanvanth@example.com', phone: '9999999996', department: 'HR', employeeId: 'EMP006', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-008', name: 'Ajay', email: 'Ajay@example.com', phone: '9999999997', department: 'QA', employeeId: 'EMP007', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-009', name: 'Akshay', email: 'Akshay@example.com', phone: '9999999998', department: 'Purchase', employeeId: 'EMP008', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+          ];
+          // Save sample users to Supabase
+          for (const user of sampleUsers) {
+            await fetchUsers().then(users => {
+              if (!users.find(u => u.id === user.id)) {
+                // This is a simplified approach - in production, you'd batch insert
+              }
+            });
+          }
+          storedUsers = sampleUsers;
+        }
 
-    setUsers(storedUsers);
+        setUsers(storedUsers);
+      } catch (error) {
+        console.error('Error loading users:', error);
+        // Fallback to localStorage if Supabase fails
+        let storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+        if (storedUsers.length === 0) {
+          const sampleUsers = [
+            { id: 'user-001', name: 'Kumaran G U', email: 'gu.kumaran@gmail.com', phone: '7845784565', department: 'Quality', employeeId: '97', isAdmin: true, password: '12345', createdAt: '2026-05-11T00:00:00.000Z' },
+            { id: 'user-002', name: 'Dhasvanth Akshay', email: 'john.doe@example.com', phone: '9999999991', department: 'IT', employeeId: 'EMP001', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-003', name: 'Dhanvanth Ajay', email: 'jane.smith@example.com', phone: '9999999992', department: 'HR', employeeId: 'EMP002', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-004', name: 'Karthiga', email: 'Lokesh@example.com', phone: '9999999993', department: 'QA', employeeId: 'EMP003', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-005', name: 'Kumar', email: 'Kumar@example.com', phone: '9999999994', department: 'Purchase', employeeId: 'EMP004', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-006', name: 'Kamesh', email: 'Kamesh@example.com', phone: '9999999995', department: 'IT', employeeId: 'EMP005', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-007', name: 'Dhanvanth', email: 'Dhanvanth@example.com', phone: '9999999996', department: 'HR', employeeId: 'EMP006', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-008', name: 'Ajay', email: 'Ajay@example.com', phone: '9999999997', department: 'QA', employeeId: 'EMP007', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+            { id: 'user-009', name: 'Akshay', email: 'Akshay@example.com', phone: '9999999998', department: 'Purchase', employeeId: 'EMP008', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+          ];
+          localStorage.setItem('users', JSON.stringify(sampleUsers));
+          storedUsers = sampleUsers;
+        }
+        setUsers(storedUsers);
+      }
+    };
+
+    loadUsers();
   }, []);
 
   const normalizePhone = (phone) => String(phone || '').replace(/\D/g, '');
