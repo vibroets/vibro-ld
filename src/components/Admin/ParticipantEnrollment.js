@@ -36,14 +36,14 @@ const ParticipantEnrollment = () => {
     const videosArray = Array.isArray(videos) ? videos : [];
     const trainingSchedulesArray = Array.isArray(trainingSchedules) ? trainingSchedules : [];
     
-    // Filter training schedules to show only approved trainings
-    const approvedTrainings = trainingSchedulesArray.filter(t => t.status === 'approved' || !t.status);
+    // Show all trainings regardless of status for now (for debugging)
+    const allTrainings = trainingSchedulesArray;
     
     // Combine all L&T content into a single array with type labels
     const allLtContent = [
       ...quizzesArray.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
       ...videosArray.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
-      ...approvedTrainings.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Calendar' }))
+      ...allTrainings.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Calendar' }))
     ];
     
     const storedParticipants = JSON.parse(localStorage.getItem('users') || '[]');
