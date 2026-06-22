@@ -175,6 +175,16 @@ const TrainingCalendar = () => {
     }
   };
 
+  const handleClearAll = () => {
+    if (window.confirm('This will delete all training schedules. Are you sure?')) {
+      localStorage.setItem('trainingSchedules', '[]');
+      localStorage.setItem('approvals', '[]');
+      localStorage.setItem('attendances', '[]');
+      setTrainings([]);
+      alert('All training schedules cleared successfully');
+    }
+  };
+
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -284,6 +294,13 @@ const TrainingCalendar = () => {
                 >
                   <Database className="w-4 h-4" />
                   Seed Data
+                </button>
+                <button
+                  onClick={handleClearAll}
+                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Clear All
                 </button>
               </div>
             </div>
