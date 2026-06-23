@@ -271,7 +271,11 @@ const AttendanceManagement = () => {
                             </div>
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
-                              <span>{attendance.location || 'N/A'}</span>
+                              <span>
+                                {typeof attendance.location === 'object' && attendance.location !== null 
+                                  ? `${attendance.location.latitude || ''}, ${attendance.location.longitude || ''}` 
+                                  : attendance.location || 'N/A'}
+                              </span>
                             </div>
                             <div className="flex items-center gap-2">
                               <MethodIcon className="w-4 h-4" />
