@@ -25,39 +25,54 @@ const UserTrainingCalendar = () => {
   const loadTrainings = useCallback(async () => {
     try {
       const storedTrainings = await DataManager.getTrainingSchedules();
+      console.log('UserTrainingCalendar: Loaded trainings from DataManager:', storedTrainings);
+      
       const userData = localStorage.getItem('currentUser');
-      if (!userData) return;
+      if (!userData) {
+        console.log('UserTrainingCalendar: No current user found');
+        return;
+      }
       
       const user = JSON.parse(userData);
+      console.log('UserTrainingCalendar: Current user:', user);
       
       // Filter trainings where the user is a participant AND training is approved
       const userTrainings = storedTrainings.filter(training => {
         const participants = training.participants || [];
+        console.log(`UserTrainingCalendar: Training "${training.title}" has participants:`, participants);
         if (!Array.isArray(participants)) return false;
         const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
         const isApproved = training.status === 'approved' || !training.status;
+        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}`);
         return isParticipant && isApproved;
       });
       
+      console.log('UserTrainingCalendar: Filtered user trainings:', userTrainings);
       setTrainings(userTrainings);
       loadAttendanceStatus(user.id);
     } catch (error) {
       console.error('Error loading trainings:', error);
       // Fallback to localStorage
       const storedTrainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      console.log('UserTrainingCalendar: Fallback - Loaded trainings from localStorage:', storedTrainings);
+      
       const userData = localStorage.getItem('currentUser');
       if (!userData) return;
       
       const user = JSON.parse(userData);
+      console.log('UserTrainingCalendar: Fallback - Current user:', user);
       
       const userTrainings = storedTrainings.filter(training => {
         const participants = training.participants || [];
+        console.log(`UserTrainingCalendar: Fallback - Training "${training.title}" has participants:`, participants);
         if (!Array.isArray(participants)) return false;
         const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
         const isApproved = training.status === 'approved' || !training.status;
+        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}`);
         return isParticipant && isApproved;
       });
       
+      console.log('UserTrainingCalendar: Fallback - Filtered user trainings:', userTrainings);
       setTrainings(userTrainings);
       loadAttendanceStatus(user.id);
     }
