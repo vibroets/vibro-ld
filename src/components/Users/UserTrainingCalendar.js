@@ -250,7 +250,6 @@ const UserTrainingCalendar = () => {
     // Check if training items exist in localStorage
     const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
     console.log('Available training items:', trainingItems.map(t => ({ id: t.id, title: t.title })));
-    console.log('Full training items for debugging:', trainingItems);
     
     if (ltContentIds.length > 0) {
       const contentId = ltContentIds[0];
@@ -261,8 +260,16 @@ const UserTrainingCalendar = () => {
         // Navigate to the first learning content item
         navigate(`/training/${contentId}`);
       } else {
-        // Try to find by title or show all available items
-        alert(`Learning content with ID ${contentId} not found.\n\nAvailable training items:\n${trainingItems.map(t => `- ID: ${t.id}, Title: ${t.title}`).join('\n')}\n\nPlease contact your administrator to update the training schedule.`);
+        // Fallback: use the first available training item
+        if (trainingItems.length > 0) {
+          const fallbackId = trainingItems[0].id;
+          const fallbackTitle = trainingItems[0].title;
+          console.log(`Using fallback training item: ${fallbackId} - ${fallbackTitle}`);
+          alert(`Learning content with ID ${contentId} not found.\n\nUsing available training: ${fallbackTitle}\n\nPlease contact your administrator to update the training schedule.`);
+          navigate(`/training/${fallbackId}`);
+        } else {
+          alert('No learning content available. Please contact your administrator.');
+        }
       }
     } else {
       alert('No learning content is associated with this training.');
