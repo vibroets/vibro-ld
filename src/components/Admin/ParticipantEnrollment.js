@@ -128,7 +128,6 @@ const ParticipantEnrollment = () => {
     if (content) {
       const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
       const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-      const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
       const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
       
       const newNotifications = [];
