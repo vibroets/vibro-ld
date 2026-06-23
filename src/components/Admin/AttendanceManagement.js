@@ -129,11 +129,6 @@ const AttendanceManagement = () => {
     return icons[method] || CheckCircle;
   };
 
-  const getContentTitle = (contentId) => {
-    const content = ltContent.find(c => c.id === contentId);
-    return content ? `${content.libraryName} - ${content.title}` : 'Unknown Content';
-  };
-
   const getTrainingTitle = (trainingId) => {
     const trainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
     const training = trainings.find(t => t.id === trainingId);
