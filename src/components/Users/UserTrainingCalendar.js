@@ -54,7 +54,14 @@ const UserTrainingCalendar = () => {
         
         // Check if user has completed this training
         const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+        console.log(`UserTrainingCalendar: Training "${training.title}" (ID: ${training.id})`);
+        console.log(`UserTrainingCalendar: User ID: ${user.id}`);
         console.log('All attendances:', attendances);
+        
+        // Log all attendance records for this specific training
+        const trainingAttendances = attendances.filter(a => a.trainingId === training.id);
+        console.log(`UserTrainingCalendar: Attendance records for training ID ${training.id}:`, trainingAttendances);
+        
         const completedAttendance = attendances.find(a => 
           a.trainingId === training.id && 
           a.userId === user.id && 
