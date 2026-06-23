@@ -1,4 +1,4 @@
-import { getTrainingSchedules as supabaseGetTrainingSchedules, saveTrainingSchedule as supabaseSaveTrainingSchedule, getAttendances, saveAttendance, getQuizzes, saveQuiz, getQuizResults, saveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin } from './supabaseService';
+import { getAttendances, saveAttendance, getQuizzes, saveQuiz, getQuizResults, saveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin } from './supabaseService';
 
 // Unified data manager that handles both Supabase and localStorage fallback
 export const DataManager = {
