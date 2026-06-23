@@ -115,6 +115,27 @@ const AttendanceManagement = () => {
     return user || {};
   };
 
+  const getQuizResult = (userId, trainingId) => {
+    const quizResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+    const trainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    const training = trainings.find(t => t.id === trainingId);
+    
+    if (!training || !training.ltContentIds) return null;
+    
+    const quizResult = quizResults.find(qr => 
+      training.ltContentIds.includes(qr.quizId) && 
+      qr.userId === userId
+    );
+    
+    return quizResult || null;
+  };
+
+  const getTrainingDetails = (trainingId) => {
+    const trainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    const training = trainings.find(t => t.id === trainingId);
+    return training || {};
+  };
+
   const filteredAttendances = attendances.filter(att => {
     if (filter !== 'all' && att.status !== filter) return false;
     if (dateFilter && !att.checkInTime?.startsWith(dateFilter)) return false;
@@ -238,18 +259,61 @@ const AttendanceManagement = () => {
                     <div key={attendance.id} className="p-6 hover:bg-gray-50 transition">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center gap-3 mb-3">
                             <h3 className="text-lg font-semibold text-gray-900">{attendance.userName || attendance.participantName || 'Unknown User'}</h3>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(attendance.status)}`}>
                               {attendance.status || 'pending'}
                             </span>
                           </div>
                           
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
-                            <div className="flex items-center gap-2">
-                              <Calendar className="w-4 h-4" />
-                              <span>{getTrainingTitle(attendance.trainingId)}</span>
+                          {/* Training Details */}
+                          <div className="bg-blue-50 rounded-lg p-4 mb-3">
+                            <h4 className="text-sm font-semibold text-blue-900 mb-2">Training Details</h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+                              <div>
+                                <span className="font-medium">Training:</span> {getTrainingTitle(attendance.trainingId)}
+                              </div>
+                              <div>
+                                <span className="font-medium">Date:</span> {getTrainingDetails(attendance.trainingId).startDate || 'N/A'}
+                              </div>
+                              <div>
+                                <span className="font-medium">Time:</span> {getTrainingDetails(attendance.trainingId).startTime} - {getTrainingDetails(attendance.trainingId).endTime}
+                              </div>
+                              <div>
+                                <span className="font-medium">Venue:</span> {getTrainingDetails(attendance.trainingId).venue || 'N/A'}
+                              </div>
                             </div>
+                          </div>
+
+                          {/* Quiz Results */}
+                          {(() => {
+                            const quizResult = getQuizResult(attendance.userId, attendance.trainingId);
+                            if (quizResult) {
+                              return (
+                                <div className="bg-green-50 rounded-lg p-4 mb-3">
+                                  <h4 className="text-sm font-semibold text-green-900 mb-2">Quiz Result</h4>
+                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+                                    <div>
+                                      <span className="font-medium">Score:</span> {quizResult.score}/{quizResult.totalQuestions || 100}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Percentage:</span> {quizResult.percentage || Math.round((quizResult.score / (quizResult.totalQuestions || quizResult.score)) * 100)}%
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Status:</span> {quizResult.score >= (quizResult.totalQuestions * 0.7 || 70) ? 'Passed' : 'Failed'}
+                                    </div>
+                                    <div>
+                                      <span className="font-medium">Completed:</span> {new Date(quizResult.completedAt || quizResult.timestamp).toLocaleString()}
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+                          
+                          {/* Attendance Details */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
                               <span>
@@ -261,6 +325,14 @@ const AttendanceManagement = () => {
                             <div className="flex items-center gap-2">
                               <MethodIcon className="w-4 h-4" />
                               <span>{attendance.checkInMethod || 'manual'}</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Clock className="w-4 h-4" />
+                              <span>
+                                {attendance.checkInTime && attendance.checkOutTime 
+                                  ? `${Math.round((new Date(attendance.checkOutTime) - new Date(attendance.checkInTime)) / 60000)} min` 
+                                  : 'N/A'}
+                              </span>
                             </div>
                           </div>
 
