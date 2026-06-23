@@ -757,12 +757,25 @@ const UserQuiz = () => {
 
     // Check out from training - update attendance record
     const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-    const userAttendance = attendances.find(a => a.userId === userData?.id && a.status === 'checked-in');
+    const userAttendance = attendances.find(a => 
+      a.userId === userData?.id && 
+      a.status === 'checked-in' &&
+      (a.trainingId === quizId || a.contentId === quizId)
+    );
     if (userAttendance) {
       userAttendance.checkOutTime = new Date().toISOString();
       userAttendance.status = 'completed';
       localStorage.setItem('attendances', JSON.stringify(attendances));
       console.log('Checked out from training:', userAttendance);
+    } else {
+      // Fallback: check if there's any checked-in attendance for this user
+      const anyCheckedIn = attendances.find(a => a.userId === userData?.id && a.status === 'checked-in');
+      if (anyCheckedIn) {
+        anyCheckedIn.checkOutTime = new Date().toISOString();
+        anyCheckedIn.status = 'completed';
+        localStorage.setItem('attendances', JSON.stringify(attendances));
+        console.log('Checked out from training (fallback):', anyCheckedIn);
+      }
     }
 
     // Immediately sync quiz results to cloud
