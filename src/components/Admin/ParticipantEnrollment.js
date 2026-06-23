@@ -109,7 +109,8 @@ const ParticipantEnrollment = () => {
     const enrollmentData = {
       ...formData,
       id: `enrollment-${Date.now()}`,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      status: 'approved' // Auto-approve enrollments for trainings
     };
 
     // Create individual enrollment records for each participant
