@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, CheckCircle, XCircle, AlertCircle, MapPin, UserCheck, QrCode, Camera, MapPin as LocationIcon, Database } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle, MapPin, UserCheck, QrCode, Camera, MapPin as LocationIcon, Database } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import { seedTrainingData } from '../../utils/seedTrainingData';
 import DataManager from '../../services/dataManager';
