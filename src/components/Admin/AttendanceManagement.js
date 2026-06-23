@@ -128,6 +128,11 @@ const AttendanceManagement = () => {
       qr.userId === userId
     );
     
+    if (quizResult) {
+      console.log('AttendanceManagement: Quiz result found:', quizResult);
+      console.log('AttendanceManagement: Quiz result fields:', Object.keys(quizResult));
+    }
+    
     return quizResult || null;
   };
 
