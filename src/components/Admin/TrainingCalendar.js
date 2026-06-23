@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock, Users, Plus, Filter, Download, Database, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, Users, Plus, Filter, Download, Database, Trash2, Fingerprint } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import TrainingSchedule from './TrainingSchedule';
 import { seedTrainingData } from '../../utils/seedTrainingData';
@@ -198,6 +198,18 @@ const TrainingCalendar = () => {
     }
   };
 
+  const handleFixUserIds = () => {
+    if (window.confirm('This will update user IDs to match login format (user-001, user-002, etc.). Are you sure?')) {
+      const users = JSON.parse(localStorage.getItem('users') || '[]');
+      const fixedUsers = users.map((user, index) => ({
+        ...user,
+        id: `user-00${index + 1}`
+      }));
+      localStorage.setItem('users', JSON.stringify(fixedUsers));
+      alert('User IDs fixed successfully. Please refresh the page.');
+    }
+  };
+
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -321,6 +333,13 @@ const TrainingCalendar = () => {
                 >
                   <Users className="w-4 h-4" />
                   Clear Participants
+                </button>
+                <button
+                  onClick={handleFixUserIds}
+                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
+                >
+                  <Fingerprint className="w-4 h-4" />
+                  Fix User IDs
                 </button>
               </div>
             </div>
