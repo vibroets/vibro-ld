@@ -134,6 +134,18 @@ const AttendanceManagement = () => {
     return content ? `${content.libraryName} - ${content.title}` : 'Unknown Content';
   };
 
+  const getTrainingTitle = (trainingId) => {
+    const trainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    const training = trainings.find(t => t.id === trainingId);
+    return training ? training.title : 'Unknown Training';
+  };
+
+  const getUserDetails = (userId) => {
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const user = users.find(u => u.id === userId);
+    return user || {};
+  };
+
   const filteredAttendances = attendances.filter(att => {
     if (filter !== 'all' && att.status !== filter) return false;
     if (dateFilter && !att.checkInTime?.startsWith(dateFilter)) return false;
@@ -258,22 +270,22 @@ const AttendanceManagement = () => {
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{attendance.participantName}</h3>
+                            <h3 className="text-lg font-semibold text-gray-900">{attendance.userName || attendance.participantName || 'Unknown User'}</h3>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(attendance.status)}`}>
-                              {attendance.status}
+                              {attendance.status || 'pending'}
                             </span>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
                             <div className="flex items-center gap-2">
                               <Calendar className="w-4 h-4" />
-                              <span>{getContentTitle(attendance.contentId)}</span>
+                              <span>{getTrainingTitle(attendance.trainingId)}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <MapPin className="w-4 h-4" />
                               <span>
                                 {typeof attendance.location === 'object' && attendance.location !== null 
-                                  ? `${attendance.location.latitude || ''}, ${attendance.location.longitude || ''}` 
+                                  ? `${attendance.location.latitude || 'Unknown'}, ${attendance.location.longitude || 'Unknown'}` 
                                   : attendance.location || 'N/A'}
                               </span>
                             </div>
@@ -283,7 +295,7 @@ const AttendanceManagement = () => {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
                             <div>
                               <p className="font-medium text-gray-900">Check-in</p>
                               <p>{attendance.checkInTime ? new Date(attendance.checkInTime).toLocaleString() : 'Not checked in'}</p>
@@ -291,6 +303,17 @@ const AttendanceManagement = () => {
                             <div>
                               <p className="font-medium text-gray-900">Check-out</p>
                               <p>{attendance.checkOutTime ? new Date(attendance.checkOutTime).toLocaleString() : 'Not checked out'}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                            <div>
+                              <p className="font-medium text-gray-900">User Email</p>
+                              <p>{getUserDetails(attendance.userId)?.email || 'N/A'}</p>
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">Department</p>
+                              <p>{getUserDetails(attendance.userId)?.department || 'N/A'}</p>
                             </div>
                           </div>
 
