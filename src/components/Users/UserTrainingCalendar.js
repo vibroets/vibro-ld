@@ -16,6 +16,8 @@ const UserTrainingCalendar = () => {
   const [locationError, setLocationError] = useState(null);
   const [checkInSuccess, setCheckInSuccess] = useState(false);
   const [attendanceStatus, setAttendanceStatus] = useState({});
+  const [showScoreModal, setShowScoreModal] = useState(false);
+  const [selectedDateResults, setSelectedDateResults] = useState(null);
 
   const loadCurrentUser = useCallback(() => {
     const userData = localStorage.getItem('currentUser');
@@ -262,6 +264,27 @@ const UserTrainingCalendar = () => {
     setShowQrModal(true);
   };
 
+  const handleShowScores = (date) => {
+    if (!date) return;
+    
+    // Load quiz results from localStorage
+    const quizResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+    const userData = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    
+    // Filter results for the current user
+    const userResults = quizResults.filter(result => 
+      result.userId === userData.id && 
+      new Date(result.completedAt).toDateString() === date.toDateString()
+    );
+    
+    if (userResults.length > 0) {
+      setSelectedDateResults(userResults);
+      setShowScoreModal(true);
+    } else {
+      alert('No quiz results found for this date.');
+    }
+  };
+
   const handleAttendTraining = (training) => {
     // Get learning content IDs from the training schedule
     const ltContentIds = training.ltContentIds || [];
@@ -389,6 +412,7 @@ const UserTrainingCalendar = () => {
                       isToday ? 'border-blue-500 bg-blue-50' : 
                       'border-gray-200 bg-white hover:bg-gray-50'
                     } cursor-pointer transition`}
+                    onClick={() => day.date && handleShowScores(day.date)}
                   >
                     {day.date && (
                       <>
@@ -619,6 +643,52 @@ const UserTrainingCalendar = () => {
             <p className="text-sm text-gray-500 mt-4 text-center">
               Show this QR code to the trainer to verify your attendance
             </p>
+          </div>
+        </div>
+      )}
+
+      {/* Score Modal */}
+      {showScoreModal && selectedDateResults && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Quiz Results</h3>
+              <button
+                onClick={() => setShowScoreModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              {selectedDateResults.map((result, index) => (
+                <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h4 className="font-semibold text-gray-900">{result.quizTitle}</h4>
+                    <div className={`text-2xl font-bold ${result.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                      {result.score}%
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+                    <div>
+                      <span className="font-medium">Correct Answers:</span> {result.correctAnswers}/{result.totalQuestions}
+                    </div>
+                    <div>
+                      <span className="font-medium">Time Taken:</span> {Math.floor(result.timeTaken / 60)}m {result.timeTaken % 60}s
+                    </div>
+                    <div>
+                      <span className="font-medium">Completed:</span> {new Date(result.completedAt).toLocaleString()}
+                    </div>
+                    <div>
+                      <span className="font-medium">Training Type:</span> {result.trainingType}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
