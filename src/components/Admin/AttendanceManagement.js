@@ -293,8 +293,9 @@ const AttendanceManagement = () => {
                             {(() => {
                               const quizResult = getQuizResult(attendance.userId, attendance.trainingId);
                               if (quizResult) {
-                                const totalQuestions = quizResult.totalQuestions || quizResult.questions?.length || 10;
-                                const percentage = Math.round((quizResult.score / totalQuestions) * 100);
+                                const totalQuestions = quizResult.totalQuestions || 10;
+                                const correctAnswers = quizResult.correctAnswers || 0;
+                                const percentage = Math.round((correctAnswers / totalQuestions) * 100);
                                 return (
                                   <div>
                                     <span className="font-medium text-gray-900">Result:</span> 
@@ -337,14 +338,15 @@ const AttendanceManagement = () => {
                               {(() => {
                                 const quizResult = getQuizResult(attendance.userId, attendance.trainingId);
                                 if (quizResult) {
-                                  const totalQuestions = quizResult.totalQuestions || quizResult.questions?.length || 10;
-                                  const percentage = Math.round((quizResult.score / totalQuestions) * 100);
+                                  const totalQuestions = quizResult.totalQuestions || 10;
+                                  const correctAnswers = quizResult.correctAnswers || 0;
+                                  const percentage = Math.round((correctAnswers / totalQuestions) * 100);
                                   return (
                                     <div className="bg-green-50 rounded-lg p-4 mb-3">
                                       <h4 className="text-sm font-semibold text-green-900 mb-2">Quiz Result</h4>
                                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
                                         <div>
-                                          <span className="font-medium">Score:</span> {quizResult.score}/{totalQuestions}
+                                          <span className="font-medium">Score:</span> {correctAnswers}/{totalQuestions}
                                         </div>
                                         <div>
                                           <span className="font-medium">Percentage:</span> {percentage}%
