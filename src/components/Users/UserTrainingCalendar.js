@@ -267,23 +267,49 @@ const UserTrainingCalendar = () => {
     const ltContentIds = training.ltContentIds || [];
     console.log('Attend Training clicked. ltContentIds:', ltContentIds);
     
-    // Check if training items exist in localStorage
+    // Check all content sources
+    const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    const videos = JSON.parse(localStorage.getItem('videos') || '[]');
     const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-    console.log('Available training items:', trainingItems.map(t => ({ id: t.id, title: t.title })));
+    
+    console.log('Available quizzes:', quizzes.map(t => ({ id: t.id, title: t.title })));
+    console.log('Available videos:', videos.map(t => ({ id: t.id, title: t.title })));
+    console.log('Available trainingItems:', trainingItems.map(t => ({ id: t.id, title: t.title })));
     
     if (ltContentIds.length > 0) {
       const contentId = ltContentIds[0];
-      const contentExists = trainingItems.some(t => t.id === contentId);
-      console.log(`Content ID ${contentId} exists:`, contentExists);
       
-      if (contentExists) {
-        // Navigate to the first learning content item
-        navigate(`/training/${contentId}`);
-      } else {
-        // Show alert with available items for debugging
-        const availableItemsList = trainingItems.map(t => `- ID: ${t.id}, Title: ${t.title}`).join('\n');
-        alert(`Learning content with ID "${contentId}" not found for training "${training.title}".\n\nAvailable training items:\n${availableItemsList}\n\nPlease contact your administrator to update the training schedule with the correct learning content ID.`);
+      // Check if content is a quiz
+      const quiz = quizzes.find(q => q.id === contentId);
+      if (quiz) {
+        console.log(`Found quiz: ${quiz.title}`);
+        navigate(`/quiz/${contentId}`);
+        return;
       }
+      
+      // Check if content is a video
+      const video = videos.find(v => v.id === contentId);
+      if (video) {
+        console.log(`Found video: ${video.title}`);
+        navigate(`/video/${contentId}`);
+        return;
+      }
+      
+      // Check if content is a training item
+      const trainingItem = trainingItems.find(t => t.id === contentId);
+      if (trainingItem) {
+        console.log(`Found training item: ${trainingItem.title}`);
+        navigate(`/training/${contentId}`);
+        return;
+      }
+      
+      // Content not found - show alert with available items
+      const availableItemsList = [
+        ...quizzes.map(t => `- [Quiz] ID: ${t.id}, Title: ${t.title}`),
+        ...videos.map(t => `- [Video] ID: ${t.id}, Title: ${t.title}`),
+        ...trainingItems.map(t => `- [Training] ID: ${t.id}, Title: ${t.title}`)
+      ].join('\n');
+      alert(`Learning content with ID "${contentId}" not found for training "${training.title}".\n\nAvailable training items:\n${availableItemsList}\n\nPlease contact your administrator to update the training schedule with the correct learning content ID.`);
     } else {
       alert('No learning content is associated with this training. Please contact your administrator.');
     }
