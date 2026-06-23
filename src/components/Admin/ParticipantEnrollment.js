@@ -192,8 +192,12 @@ const ParticipantEnrollment = () => {
         if (contentType === 'training') {
           // Update training's participants array
           const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+          console.log('ParticipantEnrollment: Current trainingSchedules:', trainingSchedules);
+          console.log('ParticipantEnrollment: Looking for training with id:', content.id);
+          
           const updatedTrainingSchedules = trainingSchedules.map(t => {
             if (t.id === content.id) {
+              console.log('ParticipantEnrollment: Found training to update:', t);
               const existingParticipants = t.participants || [];
               const newParticipant = {
                 id: participantId,
@@ -205,14 +209,19 @@ const ParticipantEnrollment = () => {
               // Check if participant already exists
               const exists = existingParticipants.some(p => p.id === participantId || p.userId === participantId);
               if (!exists) {
+                console.log('ParticipantEnrollment: Adding participant to training:', newParticipant);
                 return {
                   ...t,
                   participants: [...existingParticipants, newParticipant]
                 };
+              } else {
+                console.log('ParticipantEnrollment: Participant already exists');
               }
             }
             return t;
           });
+          
+          console.log('ParticipantEnrollment: Updated trainingSchedules:', updatedTrainingSchedules);
           localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainingSchedules));
           
           // Create notification
