@@ -293,10 +293,16 @@ const UserDashboard = () => {
 
     const totalAttempts = results.length;
     const averageScore = Math.round(
-      results.reduce((sum, result) => sum + result.score, 0) / totalAttempts
+      results.reduce((sum, result) => {
+        const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
+        return sum + percentage;
+      }, 0) / totalAttempts
     );
     const passRate = Math.round(
-      (results.filter(result => result.score >= (result.passPercentage || 60)).length / totalAttempts) * 100
+      (results.filter(result => {
+        const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
+        return percentage >= (result.passPercentage || 60);
+      }).length / totalAttempts) * 100
     );
     const avgTimeSeconds = Math.round(
       results.reduce((sum, result) => sum + result.timeTaken, 0) / totalAttempts
@@ -479,15 +485,16 @@ const UserDashboard = () => {
                     {/* Mobile: Card layout */}
                     <div className="md:hidden space-y-3">
                       {filteredResults.map((result) => {
+                        const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
                         const resultCert = (() => {
-                          const passed = (result.score ?? 0) >= (result.passPercentage ?? 70);
+                          const passed = percentage >= (result.passPercentage ?? 70);
                           if (!passed) return null;
                           // Only show certificate if it's specifically linked to this result
                           const certByResultId = certificates.find(c => c.resultId === result.id);
                           return certByResultId || null;
                         })();
                         const isCertExpired = resultCert?.expiresAt && new Date(resultCert.expiresAt) < new Date();
-                        const hasPassed = result.score >= (result.passPercentage || 60);
+                        const hasPassed = percentage >= (result.passPercentage || 60);
                         const sourceInfo = sourceLookup(result.quizId);
                         const displayTitle = result.quizTitle || sourceInfo.title || 'Unknown';
                         const displayType = result.trainingType || sourceInfo.type || 'Quiz';
@@ -526,7 +533,7 @@ const UserDashboard = () => {
                             </div>
                             <div className="flex items-center justify-between text-xs text-gray-500">
                               <span>{result.correctAnswers}/{result.totalQuestions} correct</span>
-                              <span className="font-semibold text-gray-900">{result.score}%</span>
+                              <span className="font-semibold text-gray-900">{percentage}%</span>
                               <span>{Math.round(result.timeTaken / 60)}m {result.timeTaken % 60}s</span>
                               <span>{new Date(result.completedAt).toLocaleDateString()}</span>
                             </div>
@@ -572,15 +579,16 @@ const UserDashboard = () => {
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
                           {filteredResults.map((result) => {
+                          const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
                           const resultCert = (() => {
-                            const passed = (result.score ?? 0) >= (result.passPercentage ?? 70);
+                            const passed = percentage >= (result.passPercentage ?? 70);
                             if (!passed) return null;
                             // Only show certificate if it's specifically linked to this result
                             const certByResultId = certificates.find(c => c.resultId === result.id);
                             return certByResultId || null;
                           })();
                           const isCertExpired = resultCert?.expiresAt && new Date(resultCert.expiresAt) < new Date();
-                          const hasPassed = result.score >= (result.passPercentage || 60);
+                          const hasPassed = percentage >= (result.passPercentage || 60);
                           const sourceInfo = sourceLookup(result.quizId);
                           const displayTitle = result.quizTitle || sourceInfo.title || 'Unknown';
                           const displayType = result.trainingType || sourceInfo.type || 'Quiz';
@@ -604,13 +612,13 @@ const UserDashboard = () => {
                               </td>
                               <td className="px-4 py-4 whitespace-nowrap">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-semibold text-gray-900">{result.score}%</span>
+                                  <span className="text-sm font-semibold text-gray-900">{percentage}%</span>
                                   <div className="w-12 rounded-full bg-gray-200 h-1.5">
                                     <div
                                       className={`h-1.5 rounded-full ${
-                                        result.score >= 70 ? 'bg-green-500' : result.score >= 50 ? 'bg-yellow-500' : 'bg-red-500'
+                                        percentage >= 70 ? 'bg-green-500' : percentage >= 50 ? 'bg-yellow-500' : 'bg-red-500'
                                       }`}
-                                      style={{ width: `${result.score}%` }}
+                                      style={{ width: `${percentage}%` }}
                                     />
                                   </div>
                                 </div>

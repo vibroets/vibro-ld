@@ -770,14 +770,16 @@ const UserTrainingCalendar = () => {
             </div>
             
             <div className="space-y-4">
-              {selectedDateResults.map((result, index) => (
-                <div key={index} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h4 className="font-semibold text-gray-900">{result.quizTitle}</h4>
-                    <div className={`text-2xl font-bold ${result.score >= 70 ? 'text-green-600' : 'text-red-600'}`}>
-                      {result.score}%
+              {selectedDateResults.map((result, index) => {
+                const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
+                return (
+                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h4 className="font-semibold text-gray-900">{result.quizTitle}</h4>
+                      <div className={`text-2xl font-bold ${percentage >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                        {percentage}%
+                      </div>
                     </div>
-                  </div>
                   <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                     <div>
                       <span className="font-medium">Correct Answers:</span> {result.correctAnswers}/{result.totalQuestions}
