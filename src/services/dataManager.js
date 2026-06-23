@@ -70,13 +70,17 @@ export const DataManager = {
   async getAttendances() {
     // Use localStorage only for attendances due to Supabase schema mismatch
     const localData = JSON.parse(localStorage.getItem('attendances') || '[]');
-    console.log('Loaded attendances from localStorage:', localData);
-    return localData;
+    // Handle case where data is an object instead of array
+    const attendances = Array.isArray(localData) ? localData : [];
+    console.log('Loaded attendances from localStorage:', attendances);
+    return attendances;
   },
 
   async saveAttendance(attendance) {
     // Use localStorage only for attendances due to Supabase schema mismatch
-    const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+    const localData = JSON.parse(localStorage.getItem('attendances') || '[]');
+    // Handle case where data is an object instead of array
+    const attendances = Array.isArray(localData) ? localData : [];
     
     // Check if attendance with same ID exists, update it, otherwise add new
     const existingIndex = attendances.findIndex(a => a.id === attendance.id);
