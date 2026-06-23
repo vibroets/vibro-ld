@@ -68,7 +68,34 @@ const UserTrainingCalendar = () => {
           a.userId === user.id && 
           a.status === 'completed'
         );
-        const isCompleted = !!completedAttendance;
+        let isCompleted = !!completedAttendance;
+        
+        // Fallback: Check if user has completed the quiz for this training
+        if (!isCompleted && training.ltContentIds && training.ltContentIds.length > 0) {
+          const quizResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
+          const hasCompletedQuiz = training.ltContentIds.some(contentId => 
+            quizResults.some(qr => 
+              qr.quizId === contentId && 
+              qr.userId === user.id &&
+              qr.score !== undefined
+            )
+          );
+          if (hasCompletedQuiz) {
+            console.log(`UserTrainingCalendar: Fallback - User has completed quiz for training "${training.title}"`);
+            // Auto-mark attendance as completed
+            const attendanceIndex = attendances.findIndex(a => 
+              a.trainingId === training.id && 
+              a.userId === user.id
+            );
+            if (attendanceIndex !== -1) {
+              attendances[attendanceIndex].status = 'completed';
+              attendances[attendanceIndex].checkOutTime = new Date().toISOString();
+              localStorage.setItem('attendances', JSON.stringify(attendances));
+              console.log(`UserTrainingCalendar: Auto-marked attendance as completed for training "${training.title}"`);
+              isCompleted = true;
+            }
+          }
+        }
         
         // Check if training has expired (past end date and time)
         const isExpired = (() => {
