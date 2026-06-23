@@ -6,7 +6,6 @@ import DataManager from '../../services/dataManager';
 
 const AttendanceManagement = () => {
   const [attendances, setAttendances] = useState([]);
-  const [ltContent, setLtContent] = useState([]); // L&T content (quizzes, videos, training items)
   const [filter, setFilter] = useState('all'); // all, present, absent, late
   const [dateFilter, setDateFilter] = useState('');
 
@@ -17,37 +16,12 @@ const AttendanceManagement = () => {
   const loadData = async () => {
     try {
       const storedAttendances = await DataManager.getAttendances();
-      
-      // Load L&T content from Quiz, Video, and Training libraries
-      const quizzes = await DataManager.getQuizzes();
-      const videos = await DataManager.getVideos();
-      const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-      
-      // Combine all L&T content into a single array with type labels
-      const allLtContent = [
-        ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
-        ...videos.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
-        ...trainingItems.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Library' }))
-      ];
-      
       setAttendances(storedAttendances);
-      setLtContent(allLtContent);
     } catch (error) {
       console.error('Error loading attendance data:', error);
       // Fallback to localStorage
       const storedAttendances = JSON.parse(localStorage.getItem('attendances') || '[]');
-      const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-      const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-      const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-      
-      const allLtContent = [
-        ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
-        ...videos.map(v => ({ ...v, contentType: 'video', libraryName: 'Video Library' })),
-        ...trainingItems.map(t => ({ ...t, contentType: 'training', libraryName: 'Training Library' }))
-      ];
-      
       setAttendances(storedAttendances);
-      setLtContent(allLtContent);
     }
   };
 
