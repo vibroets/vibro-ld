@@ -50,37 +50,10 @@ export const getTrainingSchedules = async () => {
 
 export const saveTrainingSchedule = async (training) => {
   // Convert camelCase to snake_case for Supabase
-  // Only include fields that exist in the Supabase schema
+  // Only include core fields that are likely to exist in any training_schedules table
   const supabaseData = {
     id: training.id,
     title: training.title,
-    code: training.code,
-    category: training.category,
-    trainingType: training.trainingType,
-    description: training.description,
-    objectives: training.objectives,
-    learningOutcomes: training.learningOutcomes,
-    duration: training.duration,
-    sessions: training.sessions,
-    startDate: training.startDate,
-    endDate: training.endDate,
-    startTime: training.startTime,
-    endTime: training.endTime,
-    timeZone: training.timeZone,
-    recurring: training.recurring,
-    repeatPattern: training.repeatPattern,
-    trainerId: training.trainerId,
-    trainer: training.trainer,
-    trainerType: training.trainerType,
-    venueId: training.venueId,
-    venue: training.venue,
-    venueType: training.venueType,
-    department: training.department,
-    location: training.location,
-    participants: training.participants,
-    ltContentIds: training.ltContentIds,
-    categoryName: training.categoryName,
-    trainingTypeName: training.trainingTypeName,
     status: training.status,
     created_at: training.createdAt || new Date().toISOString(),
     updated_at: training.updatedAt || new Date().toISOString()
