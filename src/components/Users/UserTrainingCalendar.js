@@ -73,13 +73,21 @@ const UserTrainingCalendar = () => {
         // Fallback: Check if user has completed the quiz for this training
         if (!isCompleted && training.ltContentIds && training.ltContentIds.length > 0) {
           const quizResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
-          const hasCompletedQuiz = training.ltContentIds.some(contentId => 
-            quizResults.some(qr => 
+          console.log(`UserTrainingCalendar: Training "${training.title}" ltContentIds:`, training.ltContentIds);
+          console.log(`UserTrainingCalendar: All quizResults:`, quizResults);
+          console.log(`UserTrainingCalendar: User quizResults for user ${user.id}:`, quizResults.filter(qr => qr.userId === user.id));
+          
+          const hasCompletedQuiz = training.ltContentIds.some(contentId => {
+            const quizResult = quizResults.find(qr => 
               qr.quizId === contentId && 
-              qr.userId === user.id &&
-              qr.score !== undefined
-            )
-          );
+              qr.userId === user.id
+            );
+            console.log(`UserTrainingCalendar: Checking contentId ${contentId}, found quizResult:`, quizResult);
+            return quizResult && quizResult.score !== undefined;
+          });
+          
+          console.log(`UserTrainingCalendar: hasCompletedQuiz for training "${training.title}":`, hasCompletedQuiz);
+          
           if (hasCompletedQuiz) {
             console.log(`UserTrainingCalendar: Fallback - User has completed quiz for training "${training.title}"`);
             // Auto-mark attendance as completed
