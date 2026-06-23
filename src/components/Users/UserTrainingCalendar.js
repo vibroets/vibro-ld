@@ -44,7 +44,7 @@ const UserTrainingCalendar = () => {
       const user = JSON.parse(userData);
       console.log('UserTrainingCalendar: Current user:', user);
       
-      // Filter trainings where the user is a participant AND training is approved AND not completed
+      // Filter trainings where the user is a participant AND training is approved AND not completed AND not expired
       const userTrainings = storedTrainings.filter(training => {
         const participants = training.participants || [];
         console.log(`UserTrainingCalendar: Training "${training.title}" has participants:`, participants);
@@ -62,8 +62,16 @@ const UserTrainingCalendar = () => {
         );
         const isCompleted = !!completedAttendance;
         
-        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Completed attendance:`, completedAttendance);
-        return isParticipant && isApproved && !isCompleted;
+        // Check if training has expired (past end date and time)
+        const isExpired = (() => {
+          if (!training.endDate || !training.endTime) return false;
+          const endDateTime = new Date(`${training.endDate}T${training.endTime}`);
+          const now = new Date();
+          return now > endDateTime;
+        })();
+        
+        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Completed attendance:`, completedAttendance);
+        return isParticipant && isApproved && !isCompleted && !isExpired;
       });
       
       console.log('UserTrainingCalendar: Filtered user trainings:', userTrainings);
@@ -98,8 +106,16 @@ const UserTrainingCalendar = () => {
         );
         const isCompleted = !!completedAttendance;
         
-        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Completed attendance:`, completedAttendance);
-        return isParticipant && isApproved && !isCompleted;
+        // Check if training has expired (past end date and time)
+        const isExpired = (() => {
+          if (!training.endDate || !training.endTime) return false;
+          const endDateTime = new Date(`${training.endDate}T${training.endTime}`);
+          const now = new Date();
+          return now > endDateTime;
+        })();
+        
+        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Completed attendance:`, completedAttendance);
+        return isParticipant && isApproved && !isCompleted && !isExpired;
       });
       
       console.log('UserTrainingCalendar: Fallback - Filtered user trainings:', userTrainings);
