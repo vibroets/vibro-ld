@@ -195,20 +195,21 @@ const ParticipantEnrollment = () => {
           const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
           console.log('ParticipantEnrollment: Current trainingSchedules:', trainingSchedules);
           console.log('ParticipantEnrollment: Looking for training with id:', content.id);
+          console.log('ParticipantEnrollment: Participant ID from form:', participantId);
           
           const updatedTrainingSchedules = trainingSchedules.map(t => {
             if (t.id === content.id) {
               console.log('ParticipantEnrollment: Found training to update:', t);
               const existingParticipants = t.participants || [];
               const newParticipant = {
-                id: participantId,
-                userId: participantId,
+                id: participant.id || participantId, // Use the actual user ID from participant object
+                userId: participant.id || participantId,
                 name: participant?.name || participant?.email || 'Unknown',
                 email: participant?.email,
                 enrolledAt: new Date().toISOString()
               };
               // Check if participant already exists
-              const exists = existingParticipants.some(p => p.id === participantId || p.userId === participantId);
+              const exists = existingParticipants.some(p => p.id === newParticipant.id || p.userId === newParticipant.id);
               if (!exists) {
                 console.log('ParticipantEnrollment: Adding participant to training:', newParticipant);
                 return {
