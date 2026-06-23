@@ -191,20 +191,37 @@ const ParticipantEnrollment = () => {
         }
         
         if (contentType === 'training') {
-          // Assign training item to user
-          const updatedTraining = {
-            ...content,
-            selectedUsers: [...(content.selectedUsers || []), participantId]
-          };
-          const updatedTrainingItems = trainingItems.map(t => t.id === content.id ? updatedTraining : t);
-          localStorage.setItem('trainingItems', JSON.stringify(updatedTrainingItems));
+          // Update training's participants array
+          const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+          const updatedTrainingSchedules = trainingSchedules.map(t => {
+            if (t.id === content.id) {
+              const existingParticipants = t.participants || [];
+              const newParticipant = {
+                id: participantId,
+                userId: participantId,
+                name: participant?.name || participant?.email || 'Unknown',
+                email: participant?.email,
+                enrolledAt: new Date().toISOString()
+              };
+              // Check if participant already exists
+              const exists = existingParticipants.some(p => p.id === participantId || p.userId === participantId);
+              if (!exists) {
+                return {
+                  ...t,
+                  participants: [...existingParticipants, newParticipant]
+                };
+              }
+            }
+            return t;
+          });
+          localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainingSchedules));
           
           // Create notification
           newNotifications.push({
             id: `notif-${Date.now()}-${participantId}-${content.id}`,
-            title: 'Training Material Assigned',
-            message: `You have been assigned the training material: ${contentTitle}`,
-            type: 'lt-content',
+            title: 'Training Enrolled',
+            message: `You have been enrolled in the training: ${contentTitle}`,
+            type: 'training',
             trigger: 'immediate',
             channels: ['email'],
             recipientId: participantId,
