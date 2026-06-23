@@ -76,6 +76,7 @@ const UserTrainingCalendar = () => {
           console.log(`UserTrainingCalendar: Training "${training.title}" ltContentIds:`, training.ltContentIds);
           console.log(`UserTrainingCalendar: All quizResults:`, quizResults);
           console.log(`UserTrainingCalendar: User quizResults for user ${user.id}:`, quizResults.filter(qr => qr.userId === user.id));
+          console.log(`UserTrainingCalendar: User quizIds:`, quizResults.filter(qr => qr.userId === user.id).map(qr => qr.quizId));
           
           const hasCompletedQuiz = training.ltContentIds.some(contentId => {
             const quizResult = quizResults.find(qr => 
