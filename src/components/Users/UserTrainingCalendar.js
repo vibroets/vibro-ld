@@ -795,7 +795,8 @@ const UserTrainingCalendar = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           </div>
         </div>
