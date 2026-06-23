@@ -68,11 +68,27 @@ export const DataManager = {
 
   // Attendances
   async getAttendances() {
-    return this.getData('attendances', getAttendances);
+    // Use localStorage only for attendances due to Supabase schema mismatch
+    const localData = JSON.parse(localStorage.getItem('attendances') || '[]');
+    console.log('Loaded attendances from localStorage:', localData);
+    return localData;
   },
 
   async saveAttendance(attendance) {
-    return this.saveData('attendances', attendance, saveAttendance);
+    // Use localStorage only for attendances due to Supabase schema mismatch
+    const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+    
+    // Check if attendance with same ID exists, update it, otherwise add new
+    const existingIndex = attendances.findIndex(a => a.id === attendance.id);
+    if (existingIndex >= 0) {
+      attendances[existingIndex] = attendance;
+    } else {
+      attendances.push(attendance);
+    }
+    
+    localStorage.setItem('attendances', JSON.stringify(attendances));
+    console.log('Saved attendance to localStorage:', attendance);
+    return true;
   },
 
   // Quizzes
