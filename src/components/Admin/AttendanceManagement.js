@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, CheckCircle, XCircle, AlertCircle, MapPin, UserCheck, QrCode, Camera, MapPin as LocationIcon, Database } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle, MapPin, UserCheck, QrCode, Camera, MapPin as LocationIcon, Database, ChevronDown, ChevronUp } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import { seedTrainingData } from '../../utils/seedTrainingData';
 import DataManager from '../../services/dataManager';
@@ -8,6 +8,7 @@ const AttendanceManagement = () => {
   const [attendances, setAttendances] = useState([]);
   const [filter, setFilter] = useState('all'); // all, present, absent, late
   const [dateFilter, setDateFilter] = useState('');
+  const [expandedCards, setExpandedCards] = useState({});
 
   useEffect(() => {
     loadData();
@@ -128,6 +129,13 @@ const AttendanceManagement = () => {
     );
     
     return quizResult || null;
+  };
+
+  const toggleCard = (attendanceId) => {
+    setExpandedCards(prev => ({
+      ...prev,
+      [attendanceId]: !prev[attendanceId]
+    }));
   };
 
   const getTrainingDetails = (trainingId) => {
@@ -264,99 +272,138 @@ const AttendanceManagement = () => {
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(attendance.status)}`}>
                               {attendance.status || 'pending'}
                             </span>
+                            <button
+                              onClick={() => toggleCard(attendance.id)}
+                              className="ml-auto text-gray-500 hover:text-gray-700"
+                            >
+                              {expandedCards[attendance.id] ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
+                            </button>
                           </div>
                           
-                          {/* Training Details */}
-                          <div className="bg-blue-50 rounded-lg p-4 mb-3">
-                            <h4 className="text-sm font-semibold text-blue-900 mb-2">Training Details</h4>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
-                              <div>
-                                <span className="font-medium">Training:</span> {getTrainingTitle(attendance.trainingId)}
-                              </div>
-                              <div>
-                                <span className="font-medium">Date:</span> {getTrainingDetails(attendance.trainingId).startDate || 'N/A'}
-                              </div>
-                              <div>
-                                <span className="font-medium">Time:</span> {getTrainingDetails(attendance.trainingId).startTime} - {getTrainingDetails(attendance.trainingId).endTime}
-                              </div>
-                              <div>
-                                <span className="font-medium">Venue:</span> {getTrainingDetails(attendance.trainingId).venue || 'N/A'}
-                              </div>
+                          {/* Summary View (Always Visible) */}
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm mb-3">
+                            <div>
+                              <span className="font-medium text-gray-900">Training:</span> {getTrainingTitle(attendance.trainingId)}
+                            </div>
+                            {(() => {
+                              const quizResult = getQuizResult(attendance.userId, attendance.trainingId);
+                              if (quizResult) {
+                                const totalQuestions = quizResult.totalQuestions || quizResult.questions?.length || 10;
+                                const percentage = Math.round((quizResult.score / totalQuestions) * 100);
+                                return (
+                                  <div>
+                                    <span className="font-medium text-gray-900">Result:</span> 
+                                    <span className={`ml-2 ${percentage >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                                      {percentage}%
+                                    </span>
+                                  </div>
+                                );
+                              }
+                              return <div><span className="font-medium text-gray-900">Result:</span> N/A</div>;
+                            })()}
+                            <div>
+                              <span className="font-medium text-gray-900">Check-in:</span> {attendance.checkInTime ? new Date(attendance.checkInTime).toLocaleDateString() : 'Not checked in'}
                             </div>
                           </div>
 
-                          {/* Quiz Results */}
-                          {(() => {
-                            const quizResult = getQuizResult(attendance.userId, attendance.trainingId);
-                            if (quizResult) {
-                              return (
-                                <div className="bg-green-50 rounded-lg p-4 mb-3">
-                                  <h4 className="text-sm font-semibold text-green-900 mb-2">Quiz Result</h4>
-                                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
-                                    <div>
-                                      <span className="font-medium">Score:</span> {quizResult.score}/{quizResult.totalQuestions || 100}
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">Percentage:</span> {quizResult.percentage || Math.round((quizResult.score / (quizResult.totalQuestions || quizResult.score)) * 100)}%
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">Status:</span> {quizResult.score >= (quizResult.totalQuestions * 0.7 || 70) ? 'Passed' : 'Failed'}
-                                    </div>
-                                    <div>
-                                      <span className="font-medium">Completed:</span> {new Date(quizResult.completedAt || quizResult.timestamp).toLocaleString()}
-                                    </div>
+                          {/* Detailed View (Expanded) */}
+                          {expandedCards[attendance.id] && (
+                            <>
+                              {/* Training Details */}
+                              <div className="bg-blue-50 rounded-lg p-4 mb-3">
+                                <h4 className="text-sm font-semibold text-blue-900 mb-2">Training Details</h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+                                  <div>
+                                    <span className="font-medium">Training:</span> {getTrainingTitle(attendance.trainingId)}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Date:</span> {getTrainingDetails(attendance.trainingId).startDate || 'N/A'}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Time:</span> {getTrainingDetails(attendance.trainingId).startTime} - {getTrainingDetails(attendance.trainingId).endTime}
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Venue:</span> {getTrainingDetails(attendance.trainingId).venue || 'N/A'}
                                   </div>
                                 </div>
-                              );
-                            }
-                            return null;
-                          })()}
-                          
-                          {/* Attendance Details */}
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
-                            <div className="flex items-center gap-2">
-                              <MapPin className="w-4 h-4" />
-                              <span>
-                                {typeof attendance.location === 'object' && attendance.location !== null 
-                                  ? `${attendance.location.latitude || 'Unknown'}, ${attendance.location.longitude || 'Unknown'}` 
-                                  : attendance.location || 'N/A'}
-                              </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <MethodIcon className="w-4 h-4" />
-                              <span>{attendance.checkInMethod || 'manual'}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <Clock className="w-4 h-4" />
-                              <span>
-                                {attendance.checkInTime && attendance.checkOutTime 
-                                  ? `${Math.round((new Date(attendance.checkOutTime) - new Date(attendance.checkInTime)) / 60000)} min` 
-                                  : 'N/A'}
-                              </span>
-                            </div>
-                          </div>
+                              </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
-                            <div>
-                              <p className="font-medium text-gray-900">Check-in</p>
-                              <p>{attendance.checkInTime ? new Date(attendance.checkInTime).toLocaleString() : 'Not checked in'}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">Check-out</p>
-                              <p>{attendance.checkOutTime ? new Date(attendance.checkOutTime).toLocaleString() : 'Not checked out'}</p>
-                            </div>
-                          </div>
+                              {/* Quiz Results */}
+                              {(() => {
+                                const quizResult = getQuizResult(attendance.userId, attendance.trainingId);
+                                if (quizResult) {
+                                  const totalQuestions = quizResult.totalQuestions || quizResult.questions?.length || 10;
+                                  const percentage = Math.round((quizResult.score / totalQuestions) * 100);
+                                  return (
+                                    <div className="bg-green-50 rounded-lg p-4 mb-3">
+                                      <h4 className="text-sm font-semibold text-green-900 mb-2">Quiz Result</h4>
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-700">
+                                        <div>
+                                          <span className="font-medium">Score:</span> {quizResult.score}/{totalQuestions}
+                                        </div>
+                                        <div>
+                                          <span className="font-medium">Percentage:</span> {percentage}%
+                                        </div>
+                                        <div>
+                                          <span className="font-medium">Status:</span> {percentage >= 70 ? 'Passed' : 'Failed'}
+                                        </div>
+                                        <div>
+                                          <span className="font-medium">Completed:</span> {new Date(quizResult.completedAt || quizResult.timestamp).toLocaleString()}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })()}
+                              
+                              {/* Attendance Details */}
+                              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 mb-3">
+                                <div className="flex items-center gap-2">
+                                  <MapPin className="w-4 h-4" />
+                                  <span>
+                                    {typeof attendance.location === 'object' && attendance.location !== null 
+                                      ? `${attendance.location.latitude || 'Unknown'}, ${attendance.location.longitude || 'Unknown'}` 
+                                      : attendance.location || 'N/A'}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <MethodIcon className="w-4 h-4" />
+                                  <span>{attendance.checkInMethod || 'manual'}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <Clock className="w-4 h-4" />
+                                  <span>
+                                    {attendance.checkInTime && attendance.checkOutTime 
+                                      ? `${Math.round((new Date(attendance.checkOutTime) - new Date(attendance.checkInTime)) / 60000)} min` 
+                                      : 'N/A'}
+                                  </span>
+                                </div>
+                              </div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                            <div>
-                              <p className="font-medium text-gray-900">User Email</p>
-                              <p>{getUserDetails(attendance.userId)?.email || 'N/A'}</p>
-                            </div>
-                            <div>
-                              <p className="font-medium text-gray-900">Department</p>
-                              <p>{getUserDetails(attendance.userId)?.department || 'N/A'}</p>
-                            </div>
-                          </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-3">
+                                <div>
+                                  <p className="font-medium text-gray-900">Check-in</p>
+                                  <p>{attendance.checkInTime ? new Date(attendance.checkInTime).toLocaleString() : 'Not checked in'}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900">Check-out</p>
+                                  <p>{attendance.checkOutTime ? new Date(attendance.checkOutTime).toLocaleString() : 'Not checked out'}</p>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
+                                <div>
+                                  <p className="font-medium text-gray-900">User Email</p>
+                                  <p>{getUserDetails(attendance.userId)?.email || 'N/A'}</p>
+                                </div>
+                                <div>
+                                  <p className="font-medium text-gray-900">Department</p>
+                                  <p>{getUserDetails(attendance.userId)?.department || 'N/A'}</p>
+                                </div>
+                              </div>
+                            </>
+                          )}
 
                           {attendance.notes && (
                             <div className="mt-2 text-sm text-gray-600">
