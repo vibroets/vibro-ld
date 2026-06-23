@@ -24,6 +24,10 @@ const UserTrainingCalendar = () => {
 
   const loadTrainings = useCallback(async () => {
     try {
+      console.log('UserTrainingCalendar: Checking localStorage for trainingSchedules...');
+      const localStorageData = localStorage.getItem('trainingSchedules');
+      console.log('UserTrainingCalendar: localStorage trainingSchedules raw:', localStorageData);
+      
       const storedTrainings = await DataManager.getTrainingSchedules();
       console.log('UserTrainingCalendar: Loaded trainings from DataManager:', storedTrainings);
       
