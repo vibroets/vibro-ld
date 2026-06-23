@@ -210,6 +210,24 @@ const TrainingCalendar = () => {
     }
   };
 
+  const handleResetUsers = () => {
+    if (window.confirm('This will reset all users to the correct sample data. Are you sure?')) {
+      const sampleUsers = [
+        { id: 'user-001', name: 'Kumaran G U', email: 'gu.kumaran@gmail.com', phone: '7845784565', department: 'Quality', employeeId: '97', isAdmin: true, password: '12345', createdAt: '2026-05-11T00:00:00.000Z' },
+        { id: 'user-002', name: 'Dhasvanth Akshay', email: 'john.doe@example.com', phone: '9999999991', department: 'IT', employeeId: 'EMP001', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+        { id: 'user-003', name: 'Dhanvanth Ajay', email: 'jane.smith@example.com', phone: '9999999992', department: 'HR', employeeId: 'EMP002', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+        { id: 'user-004', name: 'Karthiga', email: 'Lokesh@example.com', phone: '9999999993', department: 'QA', employeeId: 'EMP003', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+        { id: 'user-005', name: 'Kumar', email: 'Kumar@example.com', phone: '9999999994', department: 'Purchase', employeeId: 'EMP004', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+        { id: 'user-006', name: 'Kamesh', email: 'Kamesh@example.com', phone: '9999999995', department: 'IT', employeeId: 'EMP005', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+        { id: 'user-007', name: 'Dhanvanth', email: 'Dhanvanth@example.com', phone: '9999999996', department: 'HR', employeeId: 'EMP006', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+        { id: 'user-008', name: 'Ajay', email: 'Ajay@example.com', phone: '9999999997', department: 'QA', employeeId: 'EMP007', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+        { id: 'user-009', name: 'Akshay', email: 'Akshay@example.com', phone: '9999999998', department: 'Purchase', employeeId: 'EMP008', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
+      ];
+      localStorage.setItem('users', JSON.stringify(sampleUsers));
+      alert('Users reset to sample data successfully. Please refresh the page and re-login.');
+    }
+  };
+
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -340,6 +358,13 @@ const TrainingCalendar = () => {
                 >
                   <Fingerprint className="w-4 h-4" />
                   Fix User IDs
+                </button>
+                <button
+                  onClick={handleResetUsers}
+                  className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition"
+                >
+                  <Database className="w-4 h-4" />
+                  Reset Users
                 </button>
               </div>
             </div>
