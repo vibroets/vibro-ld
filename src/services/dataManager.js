@@ -68,17 +68,38 @@ export const DataManager = {
   },
 
   async saveTrainingSchedule(training) {
-    // If training is an array, save the entire array
+    // If training is an array, save the entire array to Supabase
     if (Array.isArray(training)) {
+      try {
+        for (const t of training) {
+          await saveTrainingSchedule(t);
+        }
+        // Also save to localStorage as backup
+        localStorage.setItem('trainingSchedules', JSON.stringify(training));
+        console.log('Saved training schedules to Supabase and localStorage');
+        return true;
+      } catch (error) {
+        console.error('Supabase error for training schedules:', error);
+        // Fallback to localStorage
+        localStorage.setItem('trainingSchedules', JSON.stringify(training));
+        console.log('Saved training schedules to localStorage only (Supabase error)');
+        return true;
+      }
+    }
+    // For single training, save to Supabase
+    try {
+      await saveTrainingSchedule(training);
+      // Also save to localStorage as backup
       localStorage.setItem('trainingSchedules', JSON.stringify(training));
-      // Skip Supabase save due to schema mismatch - save to localStorage only
-      console.log('Saved training schedules to localStorage only (Supabase schema mismatch)');
+      console.log('Saved training schedule to Supabase and localStorage');
+      return true;
+    } catch (error) {
+      console.error('Supabase error for training schedule:', error);
+      // Fallback to localStorage
+      localStorage.setItem('trainingSchedules', JSON.stringify(training));
+      console.log('Saved training schedule to localStorage only (Supabase error)');
       return true;
     }
-    // For single training, save to localStorage only due to schema mismatch
-    localStorage.setItem('trainingSchedules', JSON.stringify(training));
-    console.log('Saved training to localStorage only (Supabase schema mismatch)');
-    return true;
   },
 
   // Attendances

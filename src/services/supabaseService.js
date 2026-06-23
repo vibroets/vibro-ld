@@ -39,13 +39,26 @@ export const saveAdmin = async (admin) => {
 export const getTrainingSchedules = async () => {
   const { data, error } = await supabase.from('training_schedules').select('*').order('created_at', { ascending: false });
   if (error) throw error;
-  return data;
+  
+  // Convert snake_case to camelCase for consistency with localStorage
+  return data.map(item => ({
+    ...item,
+    createdAt: item.created_at,
+    updatedAt: item.updated_at
+  }));
 };
 
 export const saveTrainingSchedule = async (training) => {
+  // Convert camelCase to snake_case for Supabase
+  const supabaseData = {
+    ...training,
+    created_at: training.createdAt || new Date().toISOString(),
+    updated_at: training.updatedAt || new Date().toISOString()
+  };
+  
   const { data, error } = await supabase
     .from('training_schedules')
-    .upsert(training, { onConflict: 'id' });
+    .upsert(supabaseData, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
