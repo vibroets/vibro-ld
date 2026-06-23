@@ -70,8 +70,30 @@ const UserTrainingCalendar = () => {
           return now > endDateTime;
         })();
         
-        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Completed attendance:`, completedAttendance);
-        return isParticipant && isApproved && !isCompleted && !isExpired;
+        // Check if grace time has expired (user hasn't checked in within grace time after start)
+        const isGraceTimeExpired = (() => {
+          if (!training.startDate || !training.startTime) return false;
+          const graceTimeMinutes = training.graceTime || 0;
+          if (graceTimeMinutes === 0) return false; // No grace time restriction
+          
+          const startDateTime = new Date(`${training.startDate}T${training.startTime}`);
+          const graceTimeEnd = new Date(startDateTime.getTime() + graceTimeMinutes * 60000);
+          const now = new Date();
+          
+          // Check if user has already checked in
+          const hasCheckedIn = attendances.some(a => 
+            a.trainingId === training.id && 
+            a.userId === user.id && 
+            a.status === 'checked-in'
+          );
+          
+          if (hasCheckedIn) return false; // User already checked in, no restriction
+          
+          return now > graceTimeEnd; // Grace time expired and user hasn't checked in
+        })();
+        
+        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Is grace time expired: ${isGraceTimeExpired}, Completed attendance:`, completedAttendance);
+        return isParticipant && isApproved && !isCompleted && !isExpired && !isGraceTimeExpired;
       });
       
       console.log('UserTrainingCalendar: Filtered user trainings:', userTrainings);
@@ -114,8 +136,30 @@ const UserTrainingCalendar = () => {
           return now > endDateTime;
         })();
         
-        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Completed attendance:`, completedAttendance);
-        return isParticipant && isApproved && !isCompleted && !isExpired;
+        // Check if grace time has expired (user hasn't checked in within grace time after start)
+        const isGraceTimeExpired = (() => {
+          if (!training.startDate || !training.startTime) return false;
+          const graceTimeMinutes = training.graceTime || 0;
+          if (graceTimeMinutes === 0) return false; // No grace time restriction
+          
+          const startDateTime = new Date(`${training.startDate}T${training.startTime}`);
+          const graceTimeEnd = new Date(startDateTime.getTime() + graceTimeMinutes * 60000);
+          const now = new Date();
+          
+          // Check if user has already checked in
+          const hasCheckedIn = attendances.some(a => 
+            a.trainingId === training.id && 
+            a.userId === user.id && 
+            a.status === 'checked-in'
+          );
+          
+          if (hasCheckedIn) return false; // User already checked in, no restriction
+          
+          return now > graceTimeEnd; // Grace time expired and user hasn't checked in
+        })();
+        
+        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Is grace time expired: ${isGraceTimeExpired}, Completed attendance:`, completedAttendance);
+        return isParticipant && isApproved && !isCompleted && !isExpired && !isGraceTimeExpired;
       });
       
       console.log('UserTrainingCalendar: Fallback - Filtered user trainings:', userTrainings);

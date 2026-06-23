@@ -23,6 +23,7 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     startTime: '09:00',
     endTime: '17:00',
     timeZone: 'UTC',
+    graceTime: 15, // Grace time in minutes for check-in
     recurring: false,
     repeatPattern: 'none',
     trainerId: '',
@@ -62,6 +63,7 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
         startTime: '09:00',
         endTime: '17:00',
         timeZone: 'UTC',
+        graceTime: 15,
         recurring: false,
         repeatPattern: 'none',
         trainerId: '',
@@ -438,6 +440,18 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
                   <option value="EST">EST</option>
                   <option value="PST">PST</option>
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Grace Time (minutes)</label>
+                <input
+                  type="number"
+                  name="graceTime"
+                  value={formData.graceTime}
+                  onChange={handleChange}
+                  min="0"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                />
+                <p className="text-xs text-gray-500 mt-1">Time allowed for check-in after training starts</p>
               </div>
             </div>
             <div className="flex items-center gap-2">
