@@ -1,4 +1,4 @@
-import { getTrainingSchedules, getAttendances, saveAttendance, getQuizzes, saveQuiz, getQuizResults, saveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin } from './supabaseService';
+import { getTrainingSchedules as supabaseGetTrainingSchedules, saveTrainingSchedule as supabaseSaveTrainingSchedule, getAttendances, saveAttendance, getQuizzes, saveQuiz, getQuizResults, saveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin } from './supabaseService';
 
 // Unified data manager that handles both Supabase and localStorage fallback
 export const DataManager = {
@@ -49,7 +49,7 @@ export const DataManager = {
   // Training Schedules
   async getTrainingSchedules() {
     try {
-      const data = await getTrainingSchedules();
+      const data = await supabaseGetTrainingSchedules();
       // If Supabase returns empty array, fallback to localStorage
       if (!data || data.length === 0) {
         console.log('Supabase returned empty, falling back to localStorage');
@@ -72,7 +72,7 @@ export const DataManager = {
     if (Array.isArray(training)) {
       try {
         for (const t of training) {
-          await saveTrainingSchedule(t);
+          await supabaseSaveTrainingSchedule(t);
         }
         // Also save to localStorage as backup
         localStorage.setItem('trainingSchedules', JSON.stringify(training));
@@ -88,7 +88,7 @@ export const DataManager = {
     }
     // For single training, save to Supabase
     try {
-      await saveTrainingSchedule(training);
+      await supabaseSaveTrainingSchedule(training);
       // Also save to localStorage as backup
       localStorage.setItem('trainingSchedules', JSON.stringify(training));
       console.log('Saved training schedule to Supabase and localStorage');
