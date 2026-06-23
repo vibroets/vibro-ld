@@ -80,6 +80,7 @@ export const DataManager = {
         return true;
       } catch (error) {
         console.error('Supabase error for training schedules:', error);
+        console.error('Supabase error details:', JSON.stringify(error, null, 2));
         // Fallback to localStorage
         localStorage.setItem('trainingSchedules', JSON.stringify(training));
         console.log('Saved training schedules to localStorage only (Supabase error)');
@@ -95,6 +96,7 @@ export const DataManager = {
       return true;
     } catch (error) {
       console.error('Supabase error for training schedule:', error);
+      console.error('Supabase error details:', JSON.stringify(error, null, 2));
       // Fallback to localStorage
       localStorage.setItem('trainingSchedules', JSON.stringify(training));
       console.log('Saved training schedule to localStorage only (Supabase error)');
