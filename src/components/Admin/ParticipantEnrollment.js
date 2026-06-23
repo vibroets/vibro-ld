@@ -342,7 +342,7 @@ const ParticipantEnrollment = () => {
     return content ? `${content.libraryName} - ${content.title}` : 'Unknown Content';
   };
 
-  const filteredParticipants = participants.filter(p => p.role === 'user');
+  const filteredParticipants = participants.filter(p => !p.role || p.role === 'user');
 
   return (
     <div className="min-h-screen bg-gray-50 flex">
