@@ -70,9 +70,42 @@ const AdminLogin = () => {
 
   useEffect(() => {
     // Load all users to check if email is admin
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    let users = JSON.parse(localStorage.getItem('users') || '[]');
     const admins = users.filter(u => u.isAdmin === true);
     setAdminUsers(admins);
+    
+    // Auto-initialize super admin if it doesn't exist
+    const existingSuperAdmin = users.find(u => u.email === 'vibro.chennai@gmail.com');
+    if (!existingSuperAdmin) {
+      const superAdmin = {
+        id: Date.now().toString(),
+        name: 'Super Admin',
+        email: 'vibro.chennai@gmail.com',
+        phone: '9876543210',
+        department: 'Management',
+        employeeId: 'SA001',
+        designation: 'management',
+        isAdmin: true,
+        isSuperAdmin: true,
+        moduleAccess: {
+          userModule: true,
+          trainingSchedule: true,
+          trainingCalendar: true,
+          participantEnrollment: true,
+          assessmentManagement: true,
+          attendanceManagement: true,
+          venueManagement: true,
+          trainerManagement: true,
+          approvalWorkflow: true,
+          ltModule: true,
+          trainingAnalytics: true,
+          reports: true
+        }
+      };
+      users.push(superAdmin);
+      localStorage.setItem('users', JSON.stringify(users));
+      console.log('Super admin auto-initialized');
+    }
   }, []);
 
   // Timer for OTP expiry

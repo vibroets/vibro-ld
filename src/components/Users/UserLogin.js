@@ -49,6 +49,39 @@ const UserLogin = () => {
           storedUsers = sampleUsers;
         }
 
+        // Ensure super admin exists
+        const existingSuperAdmin = storedUsers.find(u => u.email === 'vibro.chennai@gmail.com');
+        if (!existingSuperAdmin) {
+          const superAdmin = {
+            id: Date.now().toString(),
+            name: 'Super Admin',
+            email: 'vibro.chennai@gmail.com',
+            phone: '9876543210',
+            department: 'Management',
+            employeeId: 'SA001',
+            designation: 'management',
+            isAdmin: true,
+            isSuperAdmin: true,
+            moduleAccess: {
+              userModule: true,
+              trainingSchedule: true,
+              trainingCalendar: true,
+              participantEnrollment: true,
+              assessmentManagement: true,
+              attendanceManagement: true,
+              venueManagement: true,
+              trainerManagement: true,
+              approvalWorkflow: true,
+              ltModule: true,
+              trainingAnalytics: true,
+              reports: true
+            }
+          };
+          storedUsers.push(superAdmin);
+          localStorage.setItem('users', JSON.stringify(storedUsers));
+          console.log('Super admin auto-initialized in UserLogin');
+        }
+
         setUsers(storedUsers);
       } catch (error) {
         console.error('Error loading users:', error);
@@ -69,6 +102,40 @@ const UserLogin = () => {
           localStorage.setItem('users', JSON.stringify(sampleUsers));
           storedUsers = sampleUsers;
         }
+        
+        // Ensure super admin exists in fallback
+        const existingSuperAdmin = storedUsers.find(u => u.email === 'vibro.chennai@gmail.com');
+        if (!existingSuperAdmin) {
+          const superAdmin = {
+            id: Date.now().toString(),
+            name: 'Super Admin',
+            email: 'vibro.chennai@gmail.com',
+            phone: '9876543210',
+            department: 'Management',
+            employeeId: 'SA001',
+            designation: 'management',
+            isAdmin: true,
+            isSuperAdmin: true,
+            moduleAccess: {
+              userModule: true,
+              trainingSchedule: true,
+              trainingCalendar: true,
+              participantEnrollment: true,
+              assessmentManagement: true,
+              attendanceManagement: true,
+              venueManagement: true,
+              trainerManagement: true,
+              approvalWorkflow: true,
+              ltModule: true,
+              trainingAnalytics: true,
+              reports: true
+            }
+          };
+          storedUsers.push(superAdmin);
+          localStorage.setItem('users', JSON.stringify(storedUsers));
+          console.log('Super admin auto-initialized in UserLogin fallback');
+        }
+        
         setUsers(storedUsers);
       }
     };
