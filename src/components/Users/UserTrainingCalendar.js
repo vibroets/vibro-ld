@@ -61,6 +61,7 @@ const UserTrainingCalendar = () => {
         // Log all attendance records for this specific training
         const trainingAttendances = attendances.filter(a => a.trainingId === training.id);
         console.log(`UserTrainingCalendar: Attendance records for training ID ${training.id}:`, trainingAttendances);
+        console.log(`UserTrainingCalendar: Attendance statuses for training ID ${training.id}:`, trainingAttendances.map(a => ({userId: a.userId, status: a.status})));
         
         const completedAttendance = attendances.find(a => 
           a.trainingId === training.id && 
