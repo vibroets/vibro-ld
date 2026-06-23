@@ -75,8 +75,13 @@ const ParticipantEnrollment = () => {
     const storedParticipants = JSON.parse(localStorage.getItem('users') || '[]');
     const storedEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
     
+    console.log('Participant Enrollment: Loaded users from localStorage:', storedParticipants);
+    console.log('Participant Enrollment: Users array length:', storedParticipants.length);
+    
     const participantsArray = Array.isArray(storedParticipants) ? storedParticipants : [];
     const enrollmentsArray = Array.isArray(storedEnrollments) ? storedEnrollments : [];
+    
+    console.log('Participant Enrollment: Participants array:', participantsArray);
     
     setLtContent(allLtContent);
     setParticipants(participantsArray);
