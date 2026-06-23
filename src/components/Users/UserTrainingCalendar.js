@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, CheckCircle, QrCode, MapPin as LocationIcon } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Clock, MapPin, CheckCircle, QrCode, MapPin as LocationIcon, Play } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import DataManager from '../../services/dataManager';
+import { useNavigate } from 'react-router-dom';
 
 const UserTrainingCalendar = () => {
+  const navigate = useNavigate();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [trainings, setTrainings] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -240,6 +242,11 @@ const UserTrainingCalendar = () => {
     setShowQrModal(true);
   };
 
+  const handleAttendTraining = (training) => {
+    // Navigate to training content page
+    navigate(`/training/${training.id}`);
+  };
+
   const getTrainingColor = (type) => {
     const colors = {
       'classroom': 'bg-blue-500',
@@ -382,6 +389,15 @@ const UserTrainingCalendar = () => {
                               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                             >
                               Check In
+                            </button>
+                          )}
+                          {isCheckedIn && (
+                            <button
+                              onClick={() => handleAttendTraining(training)}
+                              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center gap-2"
+                            >
+                              <Play className="w-4 h-4" />
+                              Attend Training
                             </button>
                           )}
                           <button
