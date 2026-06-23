@@ -280,19 +280,12 @@ const UserTrainingCalendar = () => {
         // Navigate to the first learning content item
         navigate(`/training/${contentId}`);
       } else {
-        // Fallback: use the first available training item
-        if (trainingItems.length > 0) {
-          const fallbackId = trainingItems[0].id;
-          const fallbackTitle = trainingItems[0].title;
-          console.log(`Using fallback training item: ${fallbackId} - ${fallbackTitle}`);
-          alert(`Learning content with ID ${contentId} not found.\n\nUsing available training: ${fallbackTitle}\n\nPlease contact your administrator to update the training schedule.`);
-          navigate(`/training/${fallbackId}`);
-        } else {
-          alert('No learning content available. Please contact your administrator.');
-        }
+        // Show alert with available items for debugging
+        const availableItemsList = trainingItems.map(t => `- ID: ${t.id}, Title: ${t.title}`).join('\n');
+        alert(`Learning content with ID "${contentId}" not found for training "${training.title}".\n\nAvailable training items:\n${availableItemsList}\n\nPlease contact your administrator to update the training schedule with the correct learning content ID.`);
       }
     } else {
-      alert('No learning content is associated with this training.');
+      alert('No learning content is associated with this training. Please contact your administrator.');
     }
   };
 
