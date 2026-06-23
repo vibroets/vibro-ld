@@ -243,8 +243,15 @@ const UserTrainingCalendar = () => {
   };
 
   const handleAttendTraining = (training) => {
-    // Navigate to training content page
-    navigate(`/training/${training.id}`);
+    // Get learning content IDs from the training schedule
+    const ltContentIds = training.ltContentIds || [];
+    
+    if (ltContentIds.length > 0) {
+      // Navigate to the first learning content item
+      navigate(`/training/${ltContentIds[0]}`);
+    } else {
+      alert('No learning content is associated with this training.');
+    }
   };
 
   const getTrainingColor = (type) => {
