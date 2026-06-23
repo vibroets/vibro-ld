@@ -42,15 +42,25 @@ const UserTrainingCalendar = () => {
       const user = JSON.parse(userData);
       console.log('UserTrainingCalendar: Current user:', user);
       
-      // Filter trainings where the user is a participant AND training is approved
+      // Filter trainings where the user is a participant AND training is approved AND not completed
       const userTrainings = storedTrainings.filter(training => {
         const participants = training.participants || [];
         console.log(`UserTrainingCalendar: Training "${training.title}" has participants:`, participants);
         if (!Array.isArray(participants)) return false;
         const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
         const isApproved = training.status === 'approved' || !training.status;
-        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}`);
-        return isParticipant && isApproved;
+        
+        // Check if user has completed this training
+        const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+        const completedAttendance = attendances.find(a => 
+          a.trainingId === training.id && 
+          a.userId === user.id && 
+          a.status === 'completed'
+        );
+        const isCompleted = !!completedAttendance;
+        
+        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}`);
+        return isParticipant && isApproved && !isCompleted;
       });
       
       console.log('UserTrainingCalendar: Filtered user trainings:', userTrainings);
@@ -74,8 +84,18 @@ const UserTrainingCalendar = () => {
         if (!Array.isArray(participants)) return false;
         const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
         const isApproved = training.status === 'approved' || !training.status;
-        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}`);
-        return isParticipant && isApproved;
+        
+        // Check if user has completed this training
+        const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+        const completedAttendance = attendances.find(a => 
+          a.trainingId === training.id && 
+          a.userId === user.id && 
+          a.status === 'completed'
+        );
+        const isCompleted = !!completedAttendance;
+        
+        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}`);
+        return isParticipant && isApproved && !isCompleted;
       });
       
       console.log('UserTrainingCalendar: Fallback - Filtered user trainings:', userTrainings);
