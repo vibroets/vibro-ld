@@ -245,10 +245,23 @@ const UserTrainingCalendar = () => {
   const handleAttendTraining = (training) => {
     // Get learning content IDs from the training schedule
     const ltContentIds = training.ltContentIds || [];
+    console.log('Attend Training clicked. ltContentIds:', ltContentIds);
+    
+    // Check if training items exist in localStorage
+    const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+    console.log('Available training items:', trainingItems.map(t => ({ id: t.id, title: t.title })));
     
     if (ltContentIds.length > 0) {
-      // Navigate to the first learning content item
-      navigate(`/training/${ltContentIds[0]}`);
+      const contentId = ltContentIds[0];
+      const contentExists = trainingItems.some(t => t.id === contentId);
+      console.log(`Content ID ${contentId} exists:`, contentExists);
+      
+      if (contentExists) {
+        // Navigate to the first learning content item
+        navigate(`/training/${contentId}`);
+      } else {
+        alert(`Learning content with ID ${contentId} not found. Please contact your administrator.`);
+      }
     } else {
       alert('No learning content is associated with this training.');
     }
