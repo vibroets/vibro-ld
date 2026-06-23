@@ -185,6 +185,19 @@ const TrainingCalendar = () => {
     }
   };
 
+  const handleClearParticipants = () => {
+    if (window.confirm('This will clear all participants from all trainings. Are you sure?')) {
+      const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      const updatedTrainingSchedules = trainingSchedules.map(t => ({
+        ...t,
+        participants: []
+      }));
+      localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainingSchedules));
+      loadTrainings();
+      alert('All participants cleared from trainings successfully');
+    }
+  };
+
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
@@ -301,6 +314,13 @@ const TrainingCalendar = () => {
                 >
                   <Trash2 className="w-4 h-4" />
                   Clear All
+                </button>
+                <button
+                  onClick={handleClearParticipants}
+                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+                >
+                  <Users className="w-4 h-4" />
+                  Clear Participants
                 </button>
               </div>
             </div>
