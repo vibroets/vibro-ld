@@ -54,6 +54,7 @@ const UserTrainingCalendar = () => {
         
         // Check if user has completed this training
         const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+        console.log('All attendances:', attendances);
         const completedAttendance = attendances.find(a => 
           a.trainingId === training.id && 
           a.userId === user.id && 
@@ -61,7 +62,7 @@ const UserTrainingCalendar = () => {
         );
         const isCompleted = !!completedAttendance;
         
-        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}`);
+        console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Completed attendance:`, completedAttendance);
         return isParticipant && isApproved && !isCompleted;
       });
       
@@ -89,6 +90,7 @@ const UserTrainingCalendar = () => {
         
         // Check if user has completed this training
         const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+        console.log('UserTrainingCalendar: Fallback - All attendances:', attendances);
         const completedAttendance = attendances.find(a => 
           a.trainingId === training.id && 
           a.userId === user.id && 
@@ -96,7 +98,7 @@ const UserTrainingCalendar = () => {
         );
         const isCompleted = !!completedAttendance;
         
-        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}`);
+        console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Completed attendance:`, completedAttendance);
         return isParticipant && isApproved && !isCompleted;
       });
       
