@@ -22,16 +22,8 @@ const UserQuiz = () => {
   const videoRef = useRef(null);
 
   const goBack = () => {
-    const storedFrom = sessionStorage.getItem('lastUserBackRoute');
-    if (location.state?.from) {
-      navigate(location.state.from);
-    } else if (storedFrom) {
-      navigate(storedFrom);
-    } else if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/user-dashboard/quizzes');
-    }
+    // Always navigate to training calendar after quiz completion
+    navigate('/user-training-calendar');
   };
 
   // Utility function to retrieve video from IndexedDB
@@ -762,6 +754,16 @@ const UserQuiz = () => {
       existingResults.push(result);
     }
     localStorage.setItem('quizResults', JSON.stringify(existingResults));
+
+    // Check out from training - update attendance record
+    const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
+    const userAttendance = attendances.find(a => a.userId === userData?.id && a.status === 'checked-in');
+    if (userAttendance) {
+      userAttendance.checkOutTime = new Date().toISOString();
+      userAttendance.status = 'completed';
+      localStorage.setItem('attendances', JSON.stringify(attendances));
+      console.log('Checked out from training:', userAttendance);
+    }
 
     // Immediately sync quiz results to cloud
 
