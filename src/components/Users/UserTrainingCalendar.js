@@ -49,7 +49,19 @@ const UserTrainingCalendar = () => {
         const participants = training.participants || [];
         console.log(`UserTrainingCalendar: Training "${training.title}" has participants:`, participants);
         if (!Array.isArray(participants)) return false;
-        const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
+        
+        // Match by ID, userId, email, or phone
+        const isParticipant = participants.some(p => 
+          p.id === user.id || 
+          p.userId === user.id ||
+          p.id === user.employeeId ||
+          p.userId === user.employeeId ||
+          (p.email && user.email && p.email.toLowerCase() === user.email.toLowerCase()) ||
+          (p.phone && user.phone && p.phone === user.phone)
+        );
+        
+        console.log(`UserTrainingCalendar: Checking participation for user ${user.id} (${user.email}) in training ${training.id}:`, isParticipant);
+        
         const isApproved = training.status === 'approved' || !training.status;
         
         // Check if user has completed this training
@@ -159,7 +171,16 @@ const UserTrainingCalendar = () => {
         const participants = training.participants || [];
         console.log(`UserTrainingCalendar: Fallback - Training "${training.title}" has participants:`, participants);
         if (!Array.isArray(participants)) return false;
-        const isParticipant = participants.some(p => p.id === user.id || p.userId === user.id);
+        
+        const isParticipant = participants.some(p => 
+          p.id === user.id || 
+          p.userId === user.id ||
+          p.id === user.employeeId ||
+          p.userId === user.employeeId ||
+          (p.email && user.email && p.email.toLowerCase() === user.email.toLowerCase()) ||
+          (p.phone && user.phone && p.phone === user.phone)
+        );
+        
         const isApproved = training.status === 'approved' || !training.status;
         
         // Check if user has completed this training
@@ -611,7 +632,10 @@ const UserTrainingCalendar = () => {
                 })}
               </div>
             ) : (
-              <p className="text-gray-500 text-sm">No trainings scheduled for today</p>
+              <div className="text-gray-500 text-sm">
+                <p>No trainings scheduled for today.</p>
+                <p className="text-xs text-gray-400 mt-2">Trainings only appear here if: (1) you are enrolled as a participant, (2) the training is approved, and (3) the training date/time has not expired.</p>
+              </div>
             )}
           </div>
 
