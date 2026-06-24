@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Link as LinkIcon, Plus, Trash2, CheckCircle, XCircle, Settings, RefreshCw, Database } from 'lucide-react';
+import { Calendar, Link as LinkIcon, Plus, Trash2, CheckCircle, XCircle, Settings, RefreshCw } from 'lucide-react';
 import Sidebar from '../Sidebar';
-import { seedTrainingData } from '../../utils/seedTrainingData';
 
 const CalendarIntegrations = () => {
   const [integrations, setIntegrations] = useState([]);
@@ -24,14 +23,6 @@ const CalendarIntegrations = () => {
   const loadIntegrations = () => {
     const storedIntegrations = JSON.parse(localStorage.getItem('calendarIntegrations') || '[]');
     setIntegrations(storedIntegrations);
-  };
-
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadIntegrations();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.trainings} trainings\n${result.users} users`);
-    }
   };
 
   const handleSubmit = (e) => {

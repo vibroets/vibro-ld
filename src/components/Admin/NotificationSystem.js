@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Plus, Edit, Trash2, Mail, MessageSquare, Smartphone, Calendar, CheckCircle, Clock, AlertCircle, Database } from 'lucide-react';
+import { Bell, Plus, Edit, Trash2, Mail, MessageSquare, Smartphone, Calendar, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import Sidebar from '../Sidebar';
-import { seedTrainingData } from '../../utils/seedTrainingData';
 
 const NotificationSystem = () => {
   const [notifications, setNotifications] = useState([]);
@@ -23,14 +22,6 @@ const NotificationSystem = () => {
   const loadNotifications = () => {
     const storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
     setNotifications(storedNotifications);
-  };
-
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadNotifications();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.notifications} notifications\n${result.trainings} trainings\n${result.users} users`);
-    }
   };
 
   const handleSubmit = (e) => {

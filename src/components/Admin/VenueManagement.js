@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { MapPin, Plus, Edit, Trash2, Building, Wifi, Monitor, Users, Database } from 'lucide-react';
+import { MapPin, Plus, Edit, Trash2, Building, Wifi, Monitor, Users } from 'lucide-react';
 import Sidebar from '../Sidebar';
-import { seedTrainingData } from '../../utils/seedTrainingData';
 
 const VenueManagement = () => {
   const [venues, setVenues] = useState([]);
@@ -32,14 +31,6 @@ const VenueManagement = () => {
   const loadVenues = () => {
     const storedVenues = JSON.parse(localStorage.getItem('venues') || '[]');
     setVenues(storedVenues);
-  };
-
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadVenues();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.venues} venues\n${result.trainings} trainings\n${result.users} users`);
-    }
   };
 
   const handleSubmit = (e) => {

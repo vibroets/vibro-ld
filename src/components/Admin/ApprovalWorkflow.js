@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle, XCircle, Clock, FileText, AlertCircle, Database } from 'lucide-react';
+import { CheckCircle, XCircle, Clock, FileText, AlertCircle } from 'lucide-react';
 import Sidebar from '../Sidebar';
-import { seedTrainingData } from '../../utils/seedTrainingData';
 
 const ApprovalWorkflow = () => {
   const [approvals, setApprovals] = useState([]);
@@ -63,14 +62,6 @@ const ApprovalWorkflow = () => {
   const loadApprovals = () => {
     const storedApprovals = JSON.parse(localStorage.getItem('approvals') || '[]');
     setApprovals(storedApprovals);
-  };
-
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadApprovals();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.approvals} approvals\n${result.trainings} trainings\n${result.users} users`);
-    }
   };
 
   const handleApprove = (approvalId, level) => {

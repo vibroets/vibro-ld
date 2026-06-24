@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Users, Calendar, Award, DollarSign, Clock, CheckCircle, AlertCircle, Database, FileText } from 'lucide-react';
+import { BarChart3, TrendingUp, Users, Calendar, Award, DollarSign, Clock, CheckCircle, AlertCircle, FileText } from 'lucide-react';
 import Sidebar from '../Sidebar';
-import { seedTrainingData } from '../../utils/seedTrainingData';
 
 const TrainingAnalytics = () => {
   const [analytics, setAnalytics] = useState({
@@ -69,14 +68,6 @@ const TrainingAnalytics = () => {
       ltQuizAttempts,
       ltQuizPassRate
     });
-  };
-
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadAnalytics();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.trainings} trainings\n${result.users} users`);
-    }
   };
 
   return (

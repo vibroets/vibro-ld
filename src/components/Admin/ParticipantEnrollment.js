@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, Trash2, UserCheck, CheckCircle, XCircle, Clock, AlertCircle, Database } from 'lucide-react';
+import { Users, Plus, Trash2, UserCheck, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
 import Sidebar from '../Sidebar';
-import { seedTrainingData } from '../../utils/seedTrainingData';
 
 const ParticipantEnrollment = () => {
   const [ltContent, setLtContent] = useState([]); // L&T content (quizzes, videos, training items)
@@ -86,14 +85,6 @@ const ParticipantEnrollment = () => {
     setLtContent(allLtContent);
     setParticipants(participantsArray);
     setEnrollments(enrollmentsArray);
-  };
-
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadData();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.trainings} trainings\n${result.enrollments} enrollments\n${result.users} users`);
-    }
   };
 
   const handleSubmit = (e) => {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Clock, CheckCircle, XCircle, AlertCircle, MapPin, UserCheck, QrCode, Camera, MapPin as LocationIcon, Database, ChevronDown, ChevronUp } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, AlertCircle, MapPin, UserCheck, QrCode, Camera, MapPin as LocationIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import Sidebar from '../Sidebar';
-import { seedTrainingData } from '../../utils/seedTrainingData';
 import DataManager from '../../services/dataManager';
 
 const AttendanceManagement = () => {
@@ -23,14 +22,6 @@ const AttendanceManagement = () => {
       // Fallback to localStorage
       const storedAttendances = JSON.parse(localStorage.getItem('attendances') || '[]');
       setAttendances(storedAttendances);
-    }
-  };
-
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadData();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.attendances} attendance records\n${result.trainings} trainings\n${result.users} users`);
     }
   };
 
