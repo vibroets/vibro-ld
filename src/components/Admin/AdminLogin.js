@@ -71,6 +71,24 @@ const AdminLogin = () => {
   useEffect(() => {
     // Load all users to check if email is admin
     let users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    // Ensure all admin users have designation field
+    let usersUpdated = false;
+    users = users.map(user => {
+      if (user.isAdmin && !user.designation) {
+        usersUpdated = true;
+        return {
+          ...user,
+          designation: user.isSuperAdmin ? 'management' : 'manager'
+        };
+      }
+      return user;
+    });
+    
+    if (usersUpdated) {
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+    
     const admins = users.filter(u => u.isAdmin === true);
     setAdminUsers(admins);
     
@@ -195,6 +213,7 @@ const AdminLogin = () => {
           phone: adminUser.phone,
           department: adminUser.department,
           employeeId: adminUser.employeeId,
+          designation: adminUser.designation || 'management',
           isAdmin: true,
           isSuperAdmin: adminUser.isSuperAdmin || false,
           moduleAccess: adminUser.moduleAccess || {}
@@ -237,6 +256,7 @@ const AdminLogin = () => {
           phone: superAdmin.phone,
           department: superAdmin.department,
           employeeId: superAdmin.employeeId,
+          designation: superAdmin.designation || 'management',
           isAdmin: true,
           isSuperAdmin: true,
           moduleAccess: superAdmin.moduleAccess || {}
