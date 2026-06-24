@@ -369,7 +369,7 @@ const TrainingCalendar = () => {
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Participants</span>
                   <span className="font-semibold text-gray-900">
-                    {trainings.reduce((sum, t) => sum + (t.participants || 0), 0)}
+                    {trainings.reduce((sum, t) => sum + (Array.isArray(t.participants) ? t.participants.length : (t.participants || 0)), 0)}
                   </span>
                 </div>
               </div>
