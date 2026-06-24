@@ -167,67 +167,6 @@ const TrainingCalendar = () => {
     setShowCreateModal(true);
   };
 
-  const handleSeedData = () => {
-    if (window.confirm('This will add sample training calendar data. Continue?')) {
-      const result = seedTrainingData();
-      loadTrainings();
-      alert(`Sample data seeded successfully:\n${result.categories} categories\n${result.trainingTypes} training types\n${result.trainers} trainers\n${result.venues} venues\n${result.trainings} trainings\n${result.enrollments} enrollments\n${result.approvals} approvals\n${result.notifications} notifications\n${result.assessments} assessments\n${result.attendances} attendance records\n${result.users} users`);
-    }
-  };
-
-  const handleClearAll = () => {
-    if (window.confirm('This will delete all training schedules. Are you sure?')) {
-      localStorage.setItem('trainingSchedules', '[]');
-      localStorage.setItem('approvals', '[]');
-      localStorage.setItem('attendances', '[]');
-      setTrainings([]);
-      alert('All training schedules cleared successfully');
-    }
-  };
-
-  const handleClearParticipants = () => {
-    if (window.confirm('This will clear all participants from all trainings. Are you sure?')) {
-      const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
-      const updatedTrainingSchedules = trainingSchedules.map(t => ({
-        ...t,
-        participants: []
-      }));
-      localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainingSchedules));
-      loadTrainings();
-      alert('All participants cleared from trainings successfully');
-    }
-  };
-
-  const handleFixUserIds = () => {
-    if (window.confirm('This will update user IDs to match login format (user-001, user-002, etc.). Are you sure?')) {
-      const users = JSON.parse(localStorage.getItem('users') || '[]');
-      const fixedUsers = users.map((user, index) => ({
-        ...user,
-        id: `user-00${index + 1}`
-      }));
-      localStorage.setItem('users', JSON.stringify(fixedUsers));
-      alert('User IDs fixed successfully. Please refresh the page.');
-    }
-  };
-
-  const handleResetUsers = () => {
-    if (window.confirm('This will reset all users to the correct sample data. Are you sure?')) {
-      const sampleUsers = [
-        { id: 'user-001', name: 'Kumaran G U', email: 'gu.kumaran@gmail.com', phone: '7845784565', department: 'Quality', employeeId: '97', isAdmin: true, password: '12345', createdAt: '2026-05-11T00:00:00.000Z' },
-        { id: 'user-002', name: 'Dhasvanth Akshay', email: 'john.doe@example.com', phone: '9999999991', department: 'IT', employeeId: 'EMP001', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-003', name: 'Dhanvanth Ajay', email: 'jane.smith@example.com', phone: '9999999992', department: 'HR', employeeId: 'EMP002', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-004', name: 'Karthiga', email: 'Lokesh@example.com', phone: '9999999993', department: 'QA', employeeId: 'EMP003', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-005', name: 'Kumar', email: 'Kumar@example.com', phone: '9999999994', department: 'Purchase', employeeId: 'EMP004', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-006', name: 'Kamesh', email: 'Kamesh@example.com', phone: '9999999995', department: 'IT', employeeId: 'EMP005', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-007', name: 'Dhanvanth', email: 'Dhanvanth@example.com', phone: '9999999996', department: 'HR', employeeId: 'EMP006', isAdmin: true, password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-008', name: 'Ajay', email: 'Ajay@example.com', phone: '9999999997', department: 'QA', employeeId: 'EMP007', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-        { id: 'user-009', name: 'Akshay', email: 'Akshay@example.com', phone: '9999999998', department: 'Purchase', employeeId: 'EMP008', password: '12345', createdAt: '2026-05-12T00:00:00.000Z' },
-      ];
-      localStorage.setItem('users', JSON.stringify(sampleUsers));
-      alert('Users reset to sample data successfully. Please refresh the page and re-login.');
-    }
-  };
-
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
