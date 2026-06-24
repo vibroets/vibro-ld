@@ -52,6 +52,13 @@ const ApprovalWorkflow = () => {
   const loadCurrentUser = () => {
     const currentAdmin = JSON.parse(localStorage.getItem('currentAdmin') || 'null');
     setCurrentUser(currentAdmin);
+    
+    // Also load full user data from users array to get correct designation
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const fullUser = users.find(u => u.id === currentAdmin?.id);
+    if (fullUser) {
+      setCurrentUser(fullUser);
+    }
   };
 
   const loadUsers = () => {
@@ -254,24 +261,42 @@ const ApprovalWorkflow = () => {
 
   // Filter approvals based on current admin's role
   const getFilteredApprovals = () => {
-    if (!currentUser) return [];
+    console.log('getFilteredApprovals called');
+    console.log('currentUser:', currentUser);
+    console.log('approvals:', approvals);
+    
+    if (!currentUser) {
+      console.log('No current user, returning empty array');
+      return [];
+    }
     
     // Super Admin sees all approvals
-    if (currentUser.isSuperAdmin) return approvals;
+    if (currentUser.isSuperAdmin) {
+      console.log('User is Super Admin, returning all approvals');
+      return approvals;
+    }
     
     // Regular admins see only approvals where they are the designated approver for current level
-    return approvals.filter(approval => {
+    const filtered = approvals.filter(approval => {
+      console.log('Checking approval:', approval);
       if (approval.approvalChain && approval.approvalChain.length > 0) {
         const currentLevel = approval.currentLevel || approval.approvalChain[0].level;
         const currentLevelConfig = approval.approvalChain.find(chain => chain.level === currentLevel);
         if (currentLevelConfig && currentLevelConfig.approverId) {
-          return currentUser.id === currentLevelConfig.approverId;
+          const matches = currentUser.id === currentLevelConfig.approverId;
+          console.log('Has approvalChain, matches:', matches, 'currentLevel:', currentLevel, 'approverId:', currentLevelConfig.approverId);
+          return matches;
         }
       }
       // If no designated approvers, check designation
       const currentLevel = approval.currentLevel || 'manager';
-      return currentUser.designation === currentLevel;
+      const matches = currentUser.designation === currentLevel;
+      console.log('No approvalChain, checking designation:', currentUser.designation, 'currentLevel:', currentLevel, 'matches:', matches);
+      return matches;
     });
+    
+    console.log('Filtered approvals:', filtered);
+    return filtered;
   };
 
   // Get approvals that current admin has already approved

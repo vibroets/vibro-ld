@@ -54,6 +54,11 @@ const Dashboard = () => {
 
   
   const currentUser = JSON.parse(localStorage.getItem('currentAdmin') || 'null');
+  
+  // Get the user from users array to get the most up-to-date info
+  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const fullUser = users.find(u => u.id === currentUser?.id);
+  const displayUser = fullUser || currentUser;
 
   const menuItems = [
     {
@@ -98,7 +103,7 @@ const Dashboard = () => {
 
       {/* Desktop Sidebar - always rendered but conditionally visible */}
       <div className="hidden lg:block">
-        <Sidebar currentUser={currentUser} />
+        <Sidebar currentUser={displayUser} />
       </div>
 
       {/* Main Content */}
@@ -112,10 +117,10 @@ const Dashboard = () => {
                 <h1 className="text-lg sm:text-xl font-semibold text-gray-900">Dashboard</h1>
               </div>
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {currentUser ? (
+                {displayUser ? (
                   <>
                     <span className="text-xs sm:text-sm text-gray-600 hidden sm:block">
-                      Welcome, {currentUser.name} ({currentUser.isSuperAdmin ? 'Super Admin' : 'Admin'})
+                      Welcome, {displayUser.name} ({displayUser.isSuperAdmin ? 'Super Admin' : displayUser.designation ? displayUser.designation.charAt(0).toUpperCase() + displayUser.designation.slice(1) : 'Admin'})
                     </span>
                     <button
                       onClick={handleLogout}
