@@ -214,7 +214,7 @@ const TrainingCalendar = () => {
       filtered = filtered.filter(t => t.venue === filters.venue);
     }
     
-    // For now, just close the modal - in a full implementation, you'd apply the filters
+    setTrainings(filtered);
     setShowFilterModal(false);
   };
 
