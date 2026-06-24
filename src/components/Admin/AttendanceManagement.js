@@ -164,14 +164,7 @@ const AttendanceManagement = () => {
                 <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
               </div>
               <div className="flex items-center gap-2">
-                <button
-                  onClick={handleSeedData}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-                >
-                  <Database className="w-4 h-4" />
-                  Seed Data
-                </button>
-              </div>
+                </div>
             </div>
           </div>
         </header>

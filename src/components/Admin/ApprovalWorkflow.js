@@ -382,14 +382,7 @@ const ApprovalWorkflow = () => {
                   <CheckCircle className="w-4 h-4" />
                   Create Request
                 </button>
-                <button
-                  onClick={handleSeedData}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-                >
-                  <Database className="w-4 h-4" />
-                  Seed Data
-                </button>
-              </div>
+                </div>
             </div>
           </div>
         </header>

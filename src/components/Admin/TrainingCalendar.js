@@ -331,41 +331,6 @@ const TrainingCalendar = () => {
                   <Plus className="w-4 h-4" />
                   Create Training
                 </button>
-                <button
-                  onClick={handleSeedData}
-                  className="flex items-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition"
-                >
-                  <Database className="w-4 h-4" />
-                  Seed Data
-                </button>
-                <button
-                  onClick={handleClearAll}
-                  className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Clear All
-                </button>
-                <button
-                  onClick={handleClearParticipants}
-                  className="flex items-center gap-2 px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
-                >
-                  <Users className="w-4 h-4" />
-                  Clear Participants
-                </button>
-                <button
-                  onClick={handleFixUserIds}
-                  className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition"
-                >
-                  <Fingerprint className="w-4 h-4" />
-                  Fix User IDs
-                </button>
-                <button
-                  onClick={handleResetUsers}
-                  className="flex items-center gap-2 px-4 py-2 bg-pink-600 text-white rounded-lg hover:bg-pink-700 transition"
-                >
-                  <Database className="w-4 h-4" />
-                  Reset Users
-                </button>
               </div>
             </div>
           </div>
