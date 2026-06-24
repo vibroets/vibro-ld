@@ -72,21 +72,38 @@ const AdminLogin = () => {
     // Load all users to check if email is admin
     let users = JSON.parse(localStorage.getItem('users') || '[]');
     
-    // Ensure all admin users have designation field
+    // Ensure all admin users have designation field and correct isSuperAdmin flag
     let usersUpdated = false;
     users = users.map(user => {
-      if (user.isAdmin && !user.designation) {
-        usersUpdated = true;
-        return {
-          ...user,
-          designation: user.isSuperAdmin ? 'management' : 'manager'
-        };
+      let updatedUser = { ...user };
+      
+      // Fix isSuperAdmin flag - only vibro.chennai@gmail.com should be super admin
+      if (user.isAdmin) {
+        if (user.email === 'vibro.chennai@gmail.com') {
+          if (!user.isSuperAdmin) {
+            updatedUser.isSuperAdmin = true;
+            usersUpdated = true;
+          }
+        } else {
+          if (user.isSuperAdmin) {
+            updatedUser.isSuperAdmin = false;
+            usersUpdated = true;
+          }
+        }
+        
+        // Ensure designation field is set
+        if (!user.designation) {
+          updatedUser.designation = user.isSuperAdmin ? 'management' : 'manager';
+          usersUpdated = true;
+        }
       }
-      return user;
+      
+      return updatedUser;
     });
     
     if (usersUpdated) {
       localStorage.setItem('users', JSON.stringify(users));
+      console.log('Updated users with correct isSuperAdmin flags and designations');
     }
     
     const admins = users.filter(u => u.isAdmin === true);
