@@ -50,7 +50,8 @@ const UserDashboard = () => {
       try {
         const quizzes = await DataManager.getQuizzes();
         const videos = await DataManager.getVideos();
-        const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]').map(item => ({
+        const trainingItemsRaw = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+        const trainingItems = Array.isArray(trainingItemsRaw) ? trainingItemsRaw.map(item => ({
           ...item,
           selectedUsers: Array.isArray(item.selectedUsers) ? item.selectedUsers : [],
           sharedWith: Array.isArray(item.sharedWith) ? item.sharedWith : [],
@@ -65,7 +66,7 @@ const UserDashboard = () => {
           assetType: item.assetType || 'document',
           sourceType: item.sourceType || 'url',
           type: 'training'
-        }));
+        })) : [];
         const allResults = await DataManager.getQuizResults();
 
       // Helper function to get correct source info for a result
@@ -152,12 +153,18 @@ const UserDashboard = () => {
       setCertificates(userCertificates);
       } catch (error) {
         console.error('Error loading assignments:', error);
-        // Fallback to localStorage
-        const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-        const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-        const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-        const allResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
-        const allCertificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+        // Fallback to localStorage with array guards
+        const quizzesRaw = JSON.parse(localStorage.getItem('quizzes') || '[]');
+        const videosRaw = JSON.parse(localStorage.getItem('videos') || '[]');
+        const trainingItemsRaw = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+        const allResultsRaw = JSON.parse(localStorage.getItem('quizResults') || '[]');
+        const allCertificatesRaw = JSON.parse(localStorage.getItem('certificates') || '[]');
+
+        const quizzes = Array.isArray(quizzesRaw) ? quizzesRaw : [];
+        const videos = Array.isArray(videosRaw) ? videosRaw : [];
+        const trainingItems = Array.isArray(trainingItemsRaw) ? trainingItemsRaw : [];
+        const allResults = Array.isArray(allResultsRaw) ? allResultsRaw : [];
+        const allCertificates = Array.isArray(allCertificatesRaw) ? allCertificatesRaw : [];
         
         // Continue with localStorage data...
         const assignedQuizzes = quizzes.filter(quiz => 
