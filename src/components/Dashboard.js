@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen, BarChart3, LogOut, Home, Cloud, Upload } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { pushLocalDataToCloud, isFirebaseConfigured } from '../services/dataSync';
-import DataManager from '../services/dataManager';
 
 const Dashboard = () => {
   const navigate = useNavigate();
