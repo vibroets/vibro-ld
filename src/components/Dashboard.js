@@ -59,28 +59,59 @@ const Dashboard = () => {
     let errors = 0;
     let pushed = 0;
     try {
+      const { supabase } = await import('../supabaseConfig');
+
+      // Helper: upsert with data JSONB, fallback to id-only if column missing
+      const upsertRow = async (table, row) => {
+        const { error } = await supabase.from(table).upsert(row, { onConflict: 'id' });
+        return !error;
+      };
+
       // Sync training schedules
       const trainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
-      if (trainings.length > 0) {
-        await DataManager.saveTrainingSchedule(trainings);
-        pushed += trainings.length;
+      const trainingsArr = Array.isArray(trainings) ? trainings : [];
+      for (const t of trainingsArr) {
+        const ok = await upsertRow('training_schedules', {
+          id: t.id, title: t.title, status: t.status,
+          created_at: t.createdAt || new Date().toISOString(),
+          updated_at: t.updatedAt || new Date().toISOString()
+        });
+        ok ? pushed++ : errors++;
       }
-      // Sync users
+
+      // Sync users — only columns that exist in Supabase users table
       const allUsers = JSON.parse(localStorage.getItem('users') || '[]');
-      for (const u of allUsers) {
-        try { await DataManager.saveUser(u); pushed++; } catch(e) { errors++; }
+      const allUsersArr = Array.isArray(allUsers) ? allUsers : [];
+      for (const u of allUsersArr) {
+        const ok = await upsertRow('users', {
+          id: u.id, name: u.name, email: u.email, phone: u.phone
+        });
+        ok ? pushed++ : errors++;
       }
+
       // Sync quizzes
       const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-      for (const q of quizzes) {
-        try { await DataManager.saveQuiz(q); pushed++; } catch(e) { errors++; }
+      const quizzesArr = Array.isArray(quizzes) ? quizzes : [];
+      for (const q of quizzesArr) {
+        const ok = await upsertRow('quizzes', {
+          id: q.id, title: q.title,
+          created_at: q.createdAt || new Date().toISOString()
+        });
+        ok ? pushed++ : errors++;
       }
+
       // Sync videos
       const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-      for (const v of videos) {
-        try { await DataManager.saveVideo(v); pushed++; } catch(e) { errors++; }
+      const videosArr = Array.isArray(videos) ? videos : [];
+      for (const v of videosArr) {
+        const ok = await upsertRow('videos', {
+          id: v.id, title: v.title,
+          created_at: v.createdAt || new Date().toISOString()
+        });
+        ok ? pushed++ : errors++;
       }
-      setSyncStatus(errors > 0 ? `Done with ${errors} errors (${pushed} pushed)` : `✅ Synced ${pushed} records to Supabase!`);
+
+      setSyncStatus(errors > 0 ? `Done with ${errors} errors (${pushed} synced)` : `✅ Synced ${pushed} records to Supabase!`);
     } catch (e) {
       setSyncStatus('Supabase sync failed: ' + e.message);
     }
@@ -92,7 +123,8 @@ const Dashboard = () => {
   const currentUser = JSON.parse(localStorage.getItem('currentAdmin') || 'null');
   
   // Get the user from users array to get the most up-to-date info
-  const users = JSON.parse(localStorage.getItem('users') || '[]');
+  const usersRaw = JSON.parse(localStorage.getItem('users') || '[]');
+  const users = Array.isArray(usersRaw) ? usersRaw : [];
   const fullUser = users.find(u => u.id === currentUser?.id);
   const displayUser = fullUser || currentUser;
 
