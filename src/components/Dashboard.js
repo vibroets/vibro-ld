@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, BarChart3, LogOut, Home, Cloud } from 'lucide-react';
+import { Users, BookOpen, BarChart3, LogOut, Home, Cloud, Upload } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { pushLocalDataToCloud, isFirebaseConfigured } from '../services/dataSync';
+import DataManager from '../services/dataManager';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -50,6 +51,41 @@ const Dashboard = () => {
     setSyncing(false);
     setSyncStatus(success ? 'Synced successfully!' : 'Sync failed');
     setTimeout(() => setSyncStatus(''), 3000);
+  };
+
+  const handleSupabaseSync = async () => {
+    setSyncing(true);
+    setSyncStatus('Syncing to Supabase...');
+    let errors = 0;
+    let pushed = 0;
+    try {
+      // Sync training schedules
+      const trainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+      if (trainings.length > 0) {
+        await DataManager.saveTrainingSchedule(trainings);
+        pushed += trainings.length;
+      }
+      // Sync users
+      const allUsers = JSON.parse(localStorage.getItem('users') || '[]');
+      for (const u of allUsers) {
+        try { await DataManager.saveUser(u); pushed++; } catch(e) { errors++; }
+      }
+      // Sync quizzes
+      const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
+      for (const q of quizzes) {
+        try { await DataManager.saveQuiz(q); pushed++; } catch(e) { errors++; }
+      }
+      // Sync videos
+      const videos = JSON.parse(localStorage.getItem('videos') || '[]');
+      for (const v of videos) {
+        try { await DataManager.saveVideo(v); pushed++; } catch(e) { errors++; }
+      }
+      setSyncStatus(errors > 0 ? `Done with ${errors} errors (${pushed} pushed)` : `✅ Synced ${pushed} records to Supabase!`);
+    } catch (e) {
+      setSyncStatus('Supabase sync failed: ' + e.message);
+    }
+    setSyncing(false);
+    setTimeout(() => setSyncStatus(''), 6000);
   };
 
   
@@ -245,8 +281,16 @@ const Dashboard = () => {
               View Results
             </button>
           </div>
-          {isFirebaseConfigured && (
-            <div className="mt-4 flex items-center gap-3">
+          <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleSupabaseSync}
+              disabled={syncing}
+              className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 text-sm font-medium disabled:opacity-50"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {syncing ? 'Syncing...' : 'Sync All to Supabase'}
+            </button>
+            {isFirebaseConfigured && (
               <button
                 onClick={handleSync}
                 disabled={syncing}
@@ -255,13 +299,13 @@ const Dashboard = () => {
                 <Cloud className="w-4 h-4 mr-2" />
                 {syncing ? 'Syncing...' : 'Sync to Cloud'}
               </button>
-              {syncStatus && (
-                <span className={`text-sm ${syncStatus.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>
-                  {syncStatus}
-                </span>
-              )}
-            </div>
-          )}
+            )}
+            {syncStatus && (
+              <span className={`text-sm font-medium ${syncStatus.includes('failed') || syncStatus.includes('errors') ? 'text-red-600' : 'text-green-600'}`}>
+                {syncStatus}
+              </span>
+            )}
+          </div>
         </div>
       </main>
       </div>
