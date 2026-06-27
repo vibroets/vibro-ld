@@ -55,7 +55,8 @@ const ApprovalWorkflow = () => {
     setCurrentUser(currentAdmin);
     
     // Also load full user data from users array to get correct designation
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    const usersRaw = JSON.parse(localStorage.getItem('users') || '[]');
+    const users = Array.isArray(usersRaw) ? usersRaw : [];
     const fullUser = users.find(u => u.id === currentAdmin?.id);
     if (fullUser) {
       setCurrentUser(fullUser);
@@ -63,12 +64,14 @@ const ApprovalWorkflow = () => {
   };
 
   const loadUsers = () => {
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
+    const storedUsersRaw = JSON.parse(localStorage.getItem('users') || '[]');
+    const storedUsers = Array.isArray(storedUsersRaw) ? storedUsersRaw : [];
     setUsers(storedUsers);
   };
 
   const loadApprovals = () => {
-    const storedApprovals = JSON.parse(localStorage.getItem('approvals') || '[]');
+    const storedApprovalsRaw = JSON.parse(localStorage.getItem('approvals') || '[]');
+    const storedApprovals = Array.isArray(storedApprovalsRaw) ? storedApprovalsRaw : [];
     setApprovals(storedApprovals);
   };
 
