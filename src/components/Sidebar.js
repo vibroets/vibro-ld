@@ -184,7 +184,10 @@ const Sidebar = ({ currentUser, onCloseMobile }) => {
   ];
 
   // Filter menu items based on module access
-  const filteredAdminMenuItems = currentAdmin && currentAdmin.isAdmin && !currentAdmin.isSuperAdmin && currentAdmin.moduleAccess
+  // Only filter if moduleAccess has been explicitly configured (at least one key explicitly set to true)
+  const hasModuleAccessConfig = currentAdmin && currentAdmin.moduleAccess &&
+    Object.values(currentAdmin.moduleAccess).some(v => v === true);
+  const filteredAdminMenuItems = currentAdmin && currentAdmin.isAdmin && !currentAdmin.isSuperAdmin && hasModuleAccessConfig
     ? adminMenuItems.filter(item => !item.moduleKey || currentAdmin.moduleAccess[item.moduleKey] === true || item.moduleKey === 'dashboard' || item.isHeader)
     : adminMenuItems;
 
