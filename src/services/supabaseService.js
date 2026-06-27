@@ -4,7 +4,19 @@ import { supabase } from '../supabaseConfig';
 export const getUsers = async () => {
   const { data, error } = await supabase.from('users').select('*');
   if (error) throw error;
-  return data;
+  return data.map(u => ({
+    id: u.id,
+    name: u.name,
+    email: u.email,
+    phone: u.phone,
+    password: u.password,
+    designation: u.designation,
+    isAdmin: u.is_admin,
+    isSuperAdmin: u.is_super_admin,
+    moduleAccess: u.module_access,
+    createdAt: u.created_at,
+    updatedAt: u.updated_at
+  }));
 };
 
 export const saveUser = async (user) => {
@@ -37,13 +49,34 @@ export const deleteUser = async (userId) => {
 export const getAdmins = async () => {
   const { data, error } = await supabase.from('admins').select('*');
   if (error) throw error;
-  return data;
+  return data.map(a => ({
+    id: a.id,
+    name: a.name,
+    email: a.email,
+    password: a.password,
+    isAdmin: a.is_admin,
+    isSuperAdmin: a.is_super_admin,
+    moduleAccess: a.module_access,
+    createdAt: a.created_at,
+    updatedAt: a.updated_at
+  }));
 };
 
 export const saveAdmin = async (admin) => {
+  const supabaseAdmin = {
+    id: admin.id,
+    name: admin.name,
+    email: admin.email,
+    password: admin.password,
+    is_admin: admin.isAdmin,
+    is_super_admin: admin.isSuperAdmin,
+    module_access: admin.moduleAccess,
+    created_at: admin.createdAt || new Date().toISOString(),
+    updated_at: admin.updatedAt || new Date().toISOString()
+  };
   const { data, error } = await supabase
     .from('admins')
-    .upsert(admin, { onConflict: 'id' });
+    .upsert(supabaseAdmin, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
@@ -165,6 +198,8 @@ export const saveEnrollment = async (enrollment) => {
     participant_id: enrollment.participantId,
     status: enrollment.status,
     data: enrollment,
+    created_at: enrollment.createdAt || new Date().toISOString(),
+    updated_at: enrollment.updatedAt || new Date().toISOString()
   };
   const { data, error } = await supabase
     .from('enrollments')
@@ -181,9 +216,16 @@ export const getQuizzes = async () => {
 };
 
 export const saveQuiz = async (quiz) => {
+  const supabaseQuiz = {
+    id: quiz.id,
+    title: quiz.title,
+    description: quiz.description,
+    created_at: quiz.createdAt || new Date().toISOString(),
+    updated_at: quiz.updatedAt || new Date().toISOString()
+  };
   const { data, error } = await supabase
     .from('quizzes')
-    .upsert(quiz, { onConflict: 'id' });
+    .upsert(supabaseQuiz, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
@@ -197,13 +239,36 @@ export const deleteQuiz = async (quizId) => {
 export const getQuizResults = async () => {
   const { data, error } = await supabase.from('quiz_results').select('*');
   if (error) throw error;
-  return data;
+  return data.map(r => ({
+    id: r.id,
+    quizId: r.quiz_id,
+    userId: r.user_id,
+    userName: r.user_name,
+    score: r.score,
+    total: r.total,
+    percentage: r.percentage,
+    status: r.status,
+    answers: r.answers,
+    completedAt: r.completed_at
+  }));
 };
 
 export const saveQuizResult = async (result) => {
+  const supabaseResult = {
+    id: result.id,
+    quiz_id: result.quizId,
+    user_id: result.userId,
+    user_name: result.userName,
+    score: result.score,
+    total: result.total,
+    percentage: result.percentage,
+    status: result.status,
+    answers: result.answers,
+    completed_at: result.completedAt || new Date().toISOString()
+  };
   const { data, error } = await supabase
     .from('quiz_results')
-    .upsert(result, { onConflict: 'id' });
+    .upsert(supabaseResult, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
@@ -212,7 +277,19 @@ export const saveQuizResult = async (result) => {
 export const getVideos = async () => {
   const { data, error } = await supabase.from('videos').select('*').order('created_at', { ascending: false });
   if (error) throw error;
-  return data;
+  return data.map(v => ({
+    id: v.id,
+    title: v.title,
+    description: v.description,
+    url: v.url,
+    thumbnail: v.thumbnail,
+    duration: v.duration,
+    selectedUsers: v.selected_users,
+    sharedWith: v.shared_with,
+    createdBy: v.created_by,
+    createdAt: v.created_at,
+    updatedAt: v.updated_at
+  }));
 };
 
 export const saveVideo = async (video) => {
@@ -245,13 +322,30 @@ export const deleteVideo = async (videoId) => {
 export const getVideoProgress = async (userId) => {
   const { data, error } = await supabase.from('video_progress').select('*').eq('user_id', userId);
   if (error) throw error;
-  return data;
+  return data.map(p => ({
+    id: p.id,
+    userId: p.user_id,
+    videoId: p.video_id,
+    progress: p.progress,
+    completed: p.completed,
+    lastPosition: p.last_position,
+    updatedAt: p.updated_at
+  }));
 };
 
 export const saveVideoProgress = async (progress) => {
+  const supabaseProgress = {
+    id: progress.id,
+    user_id: progress.userId,
+    video_id: progress.videoId,
+    progress: progress.progress,
+    completed: progress.completed,
+    last_position: progress.lastPosition,
+    updated_at: progress.updatedAt || new Date().toISOString()
+  };
   const { data, error } = await supabase
     .from('video_progress')
-    .upsert(progress, { onConflict: 'id' });
+    .upsert(supabaseProgress, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
@@ -260,13 +354,30 @@ export const saveVideoProgress = async (progress) => {
 export const getCertificates = async (userId) => {
   const { data, error } = await supabase.from('certificates').select('*').eq('user_id', userId);
   if (error) throw error;
-  return data;
+  return data.map(c => ({
+    id: c.id,
+    userId: c.user_id,
+    quizId: c.quiz_id,
+    videoId: c.video_id,
+    trainingId: c.training_id,
+    certificateUrl: c.certificate_url,
+    issuedAt: c.issued_at
+  }));
 };
 
 export const saveCertificate = async (certificate) => {
+  const supabaseCertificate = {
+    id: certificate.id,
+    user_id: certificate.userId,
+    quiz_id: certificate.quizId,
+    video_id: certificate.videoId,
+    training_id: certificate.trainingId,
+    certificate_url: certificate.certificateUrl,
+    issued_at: certificate.issuedAt || new Date().toISOString()
+  };
   const { data, error } = await supabase
     .from('certificates')
-    .upsert(certificate, { onConflict: 'id' });
+    .upsert(supabaseCertificate, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
