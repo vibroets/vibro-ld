@@ -23,10 +23,13 @@ const Dashboard = () => {
     }
     
     // Load initial stats from localStorage
-    const users = JSON.parse(localStorage.getItem('users') || '[]');
-    const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-    const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-    
+    const usersRaw = JSON.parse(localStorage.getItem('users') || '[]');
+    const quizzesRaw = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    const videosRaw = JSON.parse(localStorage.getItem('videos') || '[]');
+    const users = Array.isArray(usersRaw) ? usersRaw : [];
+    const quizzes = Array.isArray(quizzesRaw) ? quizzesRaw : [];
+    const videos = Array.isArray(videosRaw) ? videosRaw : [];
+
     setStats({
       totalUsers: users.length,
       totalQuizzes: quizzes.length,
