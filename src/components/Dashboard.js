@@ -67,46 +67,65 @@ const Dashboard = () => {
         return !error;
       };
 
-      // Sync training schedules
+      // Sync training schedules — use exact schema columns
       const trainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
       const trainingsArr = Array.isArray(trainings) ? trainings : [];
       for (const t of trainingsArr) {
         const ok = await upsertRow('training_schedules', {
-          id: t.id, title: t.title, status: t.status,
+          id: t.id,
+          title: t.title,
+          description: t.description || '',
+          start_date: t.startDate || '',
+          end_date: t.endDate || '',
+          start_time: t.startTime || '',
+          end_time: t.endTime || '',
+          venue: t.venue || '',
+          trainer: t.trainer || '',
+          participants: t.participants || [],
           created_at: t.createdAt || new Date().toISOString(),
-          updated_at: t.updatedAt || new Date().toISOString()
+          updated_at: t.updatedAt || new Date().toISOString(),
+          data: t
         });
         ok ? pushed++ : errors++;
       }
 
-      // Sync users — only columns that exist in Supabase users table
+      // Sync users — use exact schema columns
       const allUsers = JSON.parse(localStorage.getItem('users') || '[]');
       const allUsersArr = Array.isArray(allUsers) ? allUsers : [];
       for (const u of allUsersArr) {
         const ok = await upsertRow('users', {
-          id: u.id, name: u.name, email: u.email, phone: u.phone
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          password: u.password || '',
+          designation: u.designation || '',
+          is_admin: u.isAdmin || false,
+          is_super_admin: u.isSuperAdmin || false,
+          module_access: u.moduleAccess || {},
+          created_at: u.createdAt || new Date().toISOString(),
+          updated_at: u.updatedAt || new Date().toISOString()
         });
         ok ? pushed++ : errors++;
       }
 
-      // Sync quizzes
-      const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-      const quizzesArr = Array.isArray(quizzes) ? quizzes : [];
-      for (const q of quizzesArr) {
-        const ok = await upsertRow('quizzes', {
-          id: q.id, title: q.title,
-          created_at: q.createdAt || new Date().toISOString()
-        });
-        ok ? pushed++ : errors++;
-      }
-
-      // Sync videos
+      // Skip quizzes sync — quizzes table not found in schema
+      // Sync videos — use exact schema columns
       const videos = JSON.parse(localStorage.getItem('videos') || '[]');
       const videosArr = Array.isArray(videos) ? videos : [];
       for (const v of videosArr) {
         const ok = await upsertRow('videos', {
-          id: v.id, title: v.title,
-          created_at: v.createdAt || new Date().toISOString()
+          id: v.id,
+          title: v.title,
+          description: v.description || '',
+          url: v.url || '',
+          thumbnail: v.thumbnail || '',
+          duration: v.duration || '',
+          selected_users: v.selectedUsers || [],
+          shared_with: v.sharedWith || [],
+          created_by: v.createdBy || '',
+          created_at: v.createdAt || new Date().toISOString(),
+          updated_at: v.updatedAt || new Date().toISOString()
         });
         ok ? pushed++ : errors++;
       }
