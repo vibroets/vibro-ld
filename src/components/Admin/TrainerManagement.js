@@ -66,6 +66,30 @@ const TrainerManagement = () => {
     }
   };
 
+  const updateAllTrainersAvailability = () => {
+    if (window.confirm('Update all trainers availability to 08:00 - 23:59 for all days?')) {
+      const newAvailability = {
+        monday: { available: true, startTime: '08:00', endTime: '23:59' },
+        tuesday: { available: true, startTime: '08:00', endTime: '23:59' },
+        wednesday: { available: true, startTime: '08:00', endTime: '23:59' },
+        thursday: { available: true, startTime: '08:00', endTime: '23:59' },
+        friday: { available: true, startTime: '08:00', endTime: '23:59' },
+        saturday: { available: true, startTime: '08:00', endTime: '23:59' },
+        sunday: { available: true, startTime: '08:00', endTime: '23:59' }
+      };
+      
+      const updatedTrainers = trainers.map(trainer => ({
+        ...trainer,
+        availability: newAvailability,
+        updatedAt: new Date().toISOString()
+      }));
+      
+      localStorage.setItem('trainers', JSON.stringify(updatedTrainers));
+      setTrainers(updatedTrainers);
+      alert('All trainers availability updated to 08:00 - 23:59');
+    }
+  };
+
   const handleEdit = (trainer) => {
     setEditingTrainer(trainer);
     setFormData({
@@ -152,6 +176,13 @@ const TrainerManagement = () => {
                 <h1 className="text-2xl font-bold text-gray-900">Trainer Management</h1>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={updateAllTrainersAvailability}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                >
+                  <Clock className="w-4 h-4" />
+                  Set All to 08:00-23:59
+                </button>
                 <button
                   onClick={handleOpenModal}
                   className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
