@@ -46,10 +46,14 @@ const ParticipantEnrollment = () => {
 
   const loadData = () => {
     console.log('Participant Enrollment: Loading data...');
-    // Load L&T content from Quiz, Video, and Training libraries
-    const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-    const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-    const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    // Load L&T content from Quiz, Video, and Training libraries with array guards
+    const quizzesRaw = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    const videosRaw = JSON.parse(localStorage.getItem('videos') || '[]');
+    const trainingSchedulesRaw = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+
+    const quizzes = Array.isArray(quizzesRaw) ? quizzesRaw : [];
+    const videos = Array.isArray(videosRaw) ? videosRaw : [];
+    const trainingSchedules = Array.isArray(trainingSchedulesRaw) ? trainingSchedulesRaw : [];
     
     console.log('Participant Enrollment: Loaded trainingSchedules:', trainingSchedules);
     
@@ -72,8 +76,11 @@ const ParticipantEnrollment = () => {
     
     console.log('Participant Enrollment: allLtContent:', allLtContent);
     
-    const storedParticipants = JSON.parse(localStorage.getItem('users') || '[]');
-    const storedEnrollments = JSON.parse(localStorage.getItem('enrollments') || '[]');
+    const storedParticipantsRaw = JSON.parse(localStorage.getItem('users') || '[]');
+    const storedEnrollmentsRaw = JSON.parse(localStorage.getItem('enrollments') || '[]');
+    
+    const storedParticipants = Array.isArray(storedParticipantsRaw) ? storedParticipantsRaw : [];
+    const storedEnrollments = Array.isArray(storedEnrollmentsRaw) ? storedEnrollmentsRaw : [];
     
     console.log('Participant Enrollment: Loaded users from localStorage:', storedParticipants);
     console.log('Participant Enrollment: Users array length:', storedParticipants.length);
@@ -124,9 +131,13 @@ const ParticipantEnrollment = () => {
     // Auto-assign L&T content to enrolled participants (now using the selected content)
     const content = ltContent.find(c => c.id === formData.contentId);
     if (content) {
-      const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-      const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-      const notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+      const quizzesRaw = JSON.parse(localStorage.getItem('quizzes') || '[]');
+      const videosRaw = JSON.parse(localStorage.getItem('videos') || '[]');
+      const notificationsRaw = JSON.parse(localStorage.getItem('notifications') || '[]');
+
+      const quizzes = Array.isArray(quizzesRaw) ? quizzesRaw : [];
+      const videos = Array.isArray(videosRaw) ? videosRaw : [];
+      const notifications = Array.isArray(notificationsRaw) ? notificationsRaw : [];
       
       const newNotifications = [];
       
