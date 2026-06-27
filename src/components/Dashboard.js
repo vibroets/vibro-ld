@@ -58,6 +58,25 @@ const Dashboard = () => {
     setSyncStatus('Syncing to Supabase...');
     let errors = 0;
     let pushed = 0;
+
+    // Fix corrupted localStorage before sync
+    const keysToFix = ['users', 'trainingSchedules', 'quizzes', 'videos'];
+    keysToFix.forEach(key => {
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        try {
+          const parsed = JSON.parse(raw);
+          if (!Array.isArray(parsed)) {
+            console.warn(`Fixing corrupted localStorage key: ${key}`);
+            localStorage.removeItem(key); // Remove corrupted data
+          }
+        } catch(e) {
+          console.warn(`Removing invalid localStorage key: ${key}`);
+          localStorage.removeItem(key);
+        }
+      }
+    });
+
     try {
       const { supabase } = await import('../supabaseConfig');
 
