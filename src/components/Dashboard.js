@@ -310,7 +310,7 @@ const Dashboard = () => {
                 {displayUser ? (
                   <>
                     <span className="text-xs sm:text-sm text-gray-600 hidden sm:block">
-                      Welcome, {displayUser.name} ({displayUser.isSuperAdmin ? 'Super Admin' : displayUser.designation ? displayUser.designation.charAt(0).toUpperCase() + displayUser.designation.slice(1) : 'Admin'})
+                      Welcome, {displayUser.name} {(displayUser.isSuperAdmin || displayUser.isAdmin) ? 'Admin' : displayUser.designation ? displayUser.designation.charAt(0).toUpperCase() + displayUser.designation.slice(1) : 'User'}
                     </span>
                     <button
                       onClick={handleLogout}

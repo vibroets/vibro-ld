@@ -169,6 +169,47 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     checkConflicts('trainerId', trainerId);
   };
 
+  const isTrainerAvailable = (trainer) => {
+    // Check if trainer has availability schedule
+    if (!trainer.availability) return true;
+
+    const selectedDate = new Date(formData.startDate);
+    const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+    const dayAvailability = trainer.availability[dayOfWeek];
+
+    // If day is not available, trainer is not available
+    if (!dayAvailability || !dayAvailability.available) return false;
+
+    // Check time range
+    if (formData.startTime && formData.endTime) {
+      const selectedStart = formData.startTime;
+      const selectedEnd = formData.endTime;
+      const trainerStart = dayAvailability.startTime || '09:00';
+      const trainerEnd = dayAvailability.endTime || '17:00';
+
+      // Check if selected time is within trainer's availability
+      if (selectedStart < trainerStart || selectedEnd > trainerEnd) return false;
+    }
+
+    // Check if trainer is already booked at this date/time
+    const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    const trainingSchedulesArray = Array.isArray(trainingSchedules) ? trainingSchedules : [];
+
+    const conflictingTraining = trainingSchedulesArray.find(t => 
+      t.trainerId === trainer.id &&
+      t.id !== trainingData?.id &&
+      t.startDate === formData.startDate &&
+      (
+        (formData.startTime >= t.startTime && formData.startTime < t.endTime) ||
+        (formData.endTime > t.startTime && formData.endTime <= t.endTime) ||
+        (formData.startTime <= t.startTime && formData.endTime >= t.endTime)
+      ) &&
+      t.status !== 'completed'
+    );
+
+    return !conflictingTraining;
+  };
+
   const handleVenueChange = (e) => {
     const venueId = e.target.value;
     const selectedVenue = venues.find(v => v.id === venueId);
@@ -511,11 +552,18 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="">Select a trainer</option>
-                  {trainers.map(trainer => (
-                    <option key={trainer.id} value={trainer.id}>
-                      {trainer.name} ({trainer.type})
-                    </option>
-                  ))}
+                  {trainers.map(trainer => {
+                    const isAvailable = isTrainerAvailable(trainer);
+                    return (
+                      <option 
+                        key={trainer.id} 
+                        value={trainer.id}
+                        disabled={!isAvailable}
+                      >
+                        {trainer.name} ({trainer.type}){!isAvailable ? ' - Unavailable' : ''}
+                      </option>
+                    );
+                  })}
                 </select>
                 <input
                   type="hidden"
