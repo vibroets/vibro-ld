@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, Plus, Video, FileText, BookOpen, Save, Trash2, Edit2, Download, FileSpreadsheet, AlertCircle, CheckCircle, Share, Users } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { createDefaultQuestion, QUESTION_TYPES, saveDraft, loadDraft, clearDraft } from '../services/quizHelpers';
+import DataManager from '../services/dataManager';
 
 const SUPPORTED_LANGUAGES = [
   { code: 'ta', label: 'Tamil' },
@@ -307,6 +308,7 @@ const LTModule = () => {
 
     localStorage.setItem('quizzes', JSON.stringify(updatedQuizzes));
     setQuizzes(updatedQuizzes);
+    DataManager.saveQuiz(quizData).catch(e => console.error('Supabase quiz sync error:', e));
     clearDraft('quiz', editingQuiz ? editingQuiz.id : 'new');
     resetQuizForm();
   };
@@ -392,7 +394,8 @@ const LTModule = () => {
 
           localStorage.setItem('videos', JSON.stringify(updatedVideos));
           setVideos(updatedVideos);
-          
+          DataManager.saveVideo(videoData).catch(e => console.error('Supabase video sync error:', e));
+
           // Show success message and close form
           const action = editingVideo ? 'updated' : 'created';
           alert(`Video training ${action} successfully!`);
@@ -425,7 +428,8 @@ const LTModule = () => {
 
       localStorage.setItem('videos', JSON.stringify(updatedVideos));
       setVideos(updatedVideos);
-      
+      DataManager.saveVideo(serializableData).catch(e => console.error('Supabase video sync error:', e));
+
       // Show success message and close form
       const action = editingVideo ? 'updated' : 'created';
       alert(`Video training ${action} successfully!`);
