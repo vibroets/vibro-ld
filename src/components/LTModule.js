@@ -126,9 +126,12 @@ const LTModule = () => {
     setQuizzes(Array.isArray(quizzesData) ? quizzesData : []);
 
     const videosData = JSON.parse(localStorage.getItem('videos') || '[]');
-    console.log('Videos loaded from localStorage:', videosData);
-    console.log('Videos array length:', videosData?.length || 0);
-    setVideos(Array.isArray(videosData) ? videosData : []);
+    console.log('Videos loaded from localStorage (raw):', videosData);
+    // Handle case where localStorage contains a single object instead of array
+    const videosArray = Array.isArray(videosData) ? videosData : (videosData && typeof videosData === 'object' ? [videosData] : []);
+    console.log('Videos array after normalization:', videosArray);
+    console.log('Videos array length:', videosArray.length);
+    setVideos(videosArray);
 
     const trainingItemsData = JSON.parse(localStorage.getItem('trainingItems') || '[]');
     setTrainingItems(
@@ -394,10 +397,11 @@ const LTModule = () => {
           };
           
           let updatedVideos;
+          const currentVideos = Array.isArray(videos) ? videos : [];
           if (editingVideo) {
-            updatedVideos = videos.map(v => v.id === editingVideo.id ? videoData : v);
+            updatedVideos = currentVideos.map(v => v.id === editingVideo.id ? videoData : v);
           } else {
-            updatedVideos = [...videos, videoData];
+            updatedVideos = [...currentVideos, videoData];
           }
 
           localStorage.setItem('videos', JSON.stringify(updatedVideos));
@@ -430,10 +434,11 @@ const LTModule = () => {
       const { videoFile, ...serializableData } = videoData;
       
       let updatedVideos;
+      const currentVideos = Array.isArray(videos) ? videos : [];
       if (editingVideo) {
-        updatedVideos = videos.map(v => v.id === editingVideo.id ? serializableData : v);
+        updatedVideos = currentVideos.map(v => v.id === editingVideo.id ? serializableData : v);
       } else {
-        updatedVideos = [...videos, serializableData];
+        updatedVideos = [...currentVideos, serializableData];
       }
 
       localStorage.setItem('videos', JSON.stringify(updatedVideos));
