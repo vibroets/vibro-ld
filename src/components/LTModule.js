@@ -1597,10 +1597,10 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <span>{quiz.questions.length} Qs</span>
-                              <span>{quiz.questionsPerUser}/user</span>
-                              <span>{quiz.timeLimit} min</span>
-                              <span>Pass {quiz.passPercentage}%</span>
+                              <span>{quiz.questions?.length || 0} Qs</span>
+                              <span>{quiz.questionsPerUser || 0}/user</span>
+                              <span>{quiz.timeLimit || 0} min</span>
+                              <span>Pass {quiz.passPercentage || 0}%</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-500">{(quiz.selectedUsers || []).length} shared</span>
@@ -1679,7 +1679,7 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                                {quiz.questions.length} total / {quiz.questionsPerUser} per user
+                                {quiz.questions?.length || 0} total / {quiz.questionsPerUser || 0} per user
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">{quiz.timeLimit} min</td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">{quiz.passPercentage}%</td>
@@ -2641,10 +2641,10 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                           </div>
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2 text-xs text-gray-500">
-                              <span>{video.questions.length} Qs</span>
-                              <span>{video.questionsPerUser}/user</span>
-                              <span>{video.timeLimit} min</span>
-                              <span>Pass {video.passPercentage}%</span>
+                              <span>{video.questions?.length || 0} Qs</span>
+                              <span>{video.questionsPerUser || 0}/user</span>
+                              <span>{video.timeLimit || 0} min</span>
+                              <span>Pass {video.passPercentage || 0}%</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <span className="text-xs text-gray-500">{(video.selectedUsers || []).length} shared</span>
@@ -2723,7 +2723,7 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">
-                                {video.questions.length} total / {video.questionsPerUser} per user
+                                {video.questions?.length || 0} total / {video.questionsPerUser || 0} per user
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">{video.timeLimit} min</td>
                               <td className="px-6 py-4 whitespace-nowrap text-gray-600">{video.passPercentage}%</td>
