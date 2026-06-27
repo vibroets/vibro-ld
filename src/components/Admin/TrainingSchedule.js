@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Save, Users, Calendar, FileText, Target, AlertTriangle } from 'lucide-react';
+import TimePicker from './TimePicker';
 
 const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
   const [trainers, setTrainers] = useState([]);
@@ -452,24 +453,18 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Start Time *</label>
-                <input
-                  type="time"
-                  name="startTime"
+                <TimePicker
                   value={formData.startTime}
                   onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  label="startTime"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">End Time *</label>
-                <input
-                  type="time"
-                  name="endTime"
+                <TimePicker
                   value={formData.endTime}
                   onChange={handleChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  label="endTime"
                 />
               </div>
               <div>
