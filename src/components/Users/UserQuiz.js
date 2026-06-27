@@ -506,7 +506,7 @@ const UserQuiz = () => {
       alert('Quiz, video, or training not found. Please contact your administrator.');
       navigate('/user-dashboard');
     }
-  }, [quizId, navigate, location.search, trainingConfirmationRequired]);
+  }, [quizId, navigate, location.search, trainingConfirmationRequired, user]);
 
   useEffect(() => {
     if (!quizData || !reviewResultId || !user) return;
