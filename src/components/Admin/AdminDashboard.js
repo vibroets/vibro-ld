@@ -163,23 +163,33 @@ const AdminDashboard = () => {
     // Helper function to get correct source info
     const getSourceInfo = (quizId) => {
       // First check if it's a follow-up quiz (quizId matches followUpId) - use parent title
-      const parentTraining = trainingItems.find(t => t.followUpType === 'quiz' && String(t.followUpId) === String(quizId));
-      if (parentTraining) return { title: parentTraining.title, type: 'Training' };
+      if (Array.isArray(trainingItems)) {
+        const parentTraining = trainingItems.find(t => t.followUpType === 'quiz' && String(t.followUpId) === String(quizId));
+        if (parentTraining) return { title: parentTraining.title, type: 'Training' };
+      }
       
-      const parentVideo = storedVideos.find(v => v.followUpType === 'quiz' && String(v.followUpId) === String(quizId));
-      if (parentVideo) return { title: parentVideo.title, type: 'Video' };
+      if (Array.isArray(storedVideos)) {
+        const parentVideo = storedVideos.find(v => v.followUpType === 'quiz' && String(v.followUpId) === String(quizId));
+        if (parentVideo) return { title: parentVideo.title, type: 'Video' };
+      }
       
       // Then check if it's a direct quiz match
-      const quiz = storedQuizzes.find(q => q.id === quizId);
-      if (quiz) return { title: quiz.title, type: 'Quiz' };
+      if (Array.isArray(storedQuizzes)) {
+        const quiz = storedQuizzes.find(q => q.id === quizId);
+        if (quiz) return { title: quiz.title, type: 'Quiz' };
+      }
       
       // Then check if it's a direct video match
-      const video = storedVideos.find(v => v.id === quizId);
-      if (video) return { title: video.title, type: 'Video' };
+      if (Array.isArray(storedVideos)) {
+        const video = storedVideos.find(v => v.id === quizId);
+        if (video) return { title: video.title, type: 'Video' };
+      }
       
       // Then check if it's a direct training match
-      const training = trainingItems.find(t => t.id === quizId);
-      if (training) return { title: training.title, type: 'Training' };
+      if (Array.isArray(trainingItems)) {
+        const training = trainingItems.find(t => t.id === quizId);
+        if (training) return { title: training.title, type: 'Training' };
+      }
       
       return { title: null, type: null };
     };
