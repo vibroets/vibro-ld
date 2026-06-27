@@ -55,6 +55,78 @@ const Dashboard = () => {
     setTimeout(() => setSyncStatus(''), 3000);
   };
 
+  const handleSupabasePull = async () => {
+    setSyncing(true);
+    setSyncStatus('Pulling from Supabase...');
+    try {
+      const { supabase } = await import('../supabaseConfig');
+
+      // Pull users
+      const { data: usersData } = await supabase.from('users').select('*');
+      if (usersData && usersData.length > 0) {
+        const users = usersData.map(u => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          phone: u.phone,
+          password: u.password,
+          designation: u.designation,
+          isAdmin: u.is_admin,
+          isSuperAdmin: u.is_super_admin,
+          moduleAccess: u.module_access,
+          createdAt: u.created_at,
+          updatedAt: u.updated_at
+        }));
+        localStorage.setItem('users', JSON.stringify(users));
+      }
+
+      // Pull training schedules
+      const { data: trainingsData } = await supabase.from('training_schedules').select('*');
+      if (trainingsData && trainingsData.length > 0) {
+        const trainings = trainingsData.map(t => t.data || {
+          id: t.id,
+          title: t.title,
+          description: t.description,
+          startDate: t.start_date,
+          endDate: t.end_date,
+          startTime: t.start_time,
+          endTime: t.end_time,
+          venue: t.venue,
+          trainer: t.trainer,
+          participants: t.participants,
+          createdAt: t.created_at,
+          updatedAt: t.updated_at
+        });
+        localStorage.setItem('trainingSchedules', JSON.stringify(trainings));
+      }
+
+      // Pull videos
+      const { data: videosData } = await supabase.from('videos').select('*');
+      if (videosData && videosData.length > 0) {
+        const videos = videosData.map(v => ({
+          id: v.id,
+          title: v.title,
+          description: v.description,
+          url: v.url,
+          thumbnail: v.thumbnail,
+          duration: v.duration,
+          selectedUsers: v.selected_users,
+          sharedWith: v.shared_with,
+          createdBy: v.created_by,
+          createdAt: v.created_at,
+          updatedAt: v.updated_at
+        }));
+        localStorage.setItem('videos', JSON.stringify(videos));
+      }
+
+      setSyncStatus('✅ Restored from Supabase! Refreshing...');
+      setTimeout(() => window.location.reload(), 1500);
+    } catch (e) {
+      setSyncStatus('Pull failed: ' + e.message);
+    }
+    setSyncing(false);
+  };
+
   const handleSupabaseSync = async () => {
     setSyncing(true);
     setSyncStatus('Syncing to Supabase...');
@@ -354,6 +426,14 @@ const Dashboard = () => {
             </button>
           </div>
           <div className="mt-4 flex flex-wrap items-center gap-3">
+            <button
+              onClick={handleSupabasePull}
+              disabled={syncing}
+              className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition duration-200 text-sm font-medium disabled:opacity-50"
+            >
+              <Upload className="w-4 h-4 mr-2 rotate-180" />
+              {syncing ? 'Pulling...' : 'Pull from Supabase'}
+            </button>
             <button
               onClick={handleSupabaseSync}
               disabled={syncing}
