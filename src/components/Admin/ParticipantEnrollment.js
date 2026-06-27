@@ -52,7 +52,7 @@ const ParticipantEnrollment = () => {
     const trainingSchedulesRaw = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
 
     const quizzes = Array.isArray(quizzesRaw) ? quizzesRaw : [];
-    const videos = Array.isArray(videosRaw) ? videosRaw : [];
+    const videos = Array.isArray(videosRaw) ? videosRaw : (videosRaw && typeof videosRaw === 'object' ? [videosRaw] : []);
     const trainingSchedules = Array.isArray(trainingSchedulesRaw) ? trainingSchedulesRaw : [];
     
     console.log('Participant Enrollment: Loaded trainingSchedules:', trainingSchedules);

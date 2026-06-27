@@ -94,7 +94,7 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     const trainingItemsData = JSON.parse(localStorage.getItem('trainingItems') || '[]');
 
     const quizzes = Array.isArray(quizzesData) ? quizzesData : [];
-    const videos = Array.isArray(videosData) ? videosData : [];
+    const videos = Array.isArray(videosData) ? videosData : (videosData && typeof videosData === 'object' ? [videosData] : []);
     const trainingItems = Array.isArray(trainingItemsData) ? trainingItemsData : [];
 
     // Combine all L&T content into a single array
