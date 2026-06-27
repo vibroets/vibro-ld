@@ -53,21 +53,14 @@ export const DataManager = {
     try {
       const supabaseSchedules = await supabaseGetTrainingSchedules();
       if (supabaseSchedules && supabaseSchedules.length > 0) {
-        // Merge: local first (has participants), add any Supabase-only records
-        const merged = [...localSchedules];
-        supabaseSchedules.forEach(sr => {
-          const exists = merged.some(lr => lr.id === sr.id);
-          if (!exists) merged.push(sr);
-          else {
-            // Update local if Supabase has newer updatedAt
-            const localIdx = merged.findIndex(lr => lr.id === sr.id);
-            if (sr.updatedAt && merged[localIdx].updatedAt && new Date(sr.updatedAt) > new Date(merged[localIdx].updatedAt)) {
-              merged[localIdx] = sr;
-            }
-          }
+        // Supabase is source of truth — prefer Supabase over local
+        // Add any local-only records not yet pushed to Supabase
+        const merged = [...supabaseSchedules];
+        localSchedules.forEach(lr => {
+          if (!merged.some(sr => sr.id === lr.id)) merged.push(lr);
         });
         localStorage.setItem('trainingSchedules', JSON.stringify(merged));
-        console.log('Loaded training schedules (merged localStorage + Supabase):', merged.length);
+        console.log('Loaded training schedules (Supabase primary):', merged.length);
         return merged;
       }
     } catch (error) {

@@ -143,6 +143,7 @@ const ParticipantEnrollment = () => {
           };
           const updatedQuizzes = quizzes.map(q => q.id === content.id ? updatedQuiz : q);
           localStorage.setItem('quizzes', JSON.stringify(updatedQuizzes));
+          DataManager.saveQuiz(updatedQuiz).catch(e => console.error('Supabase quiz sync error:', e));
           
           // Create notification
           newNotifications.push({
@@ -169,6 +170,7 @@ const ParticipantEnrollment = () => {
           };
           const updatedVideos = videos.map(v => v.id === content.id ? updatedVideo : v);
           localStorage.setItem('videos', JSON.stringify(updatedVideos));
+          DataManager.saveVideo(updatedVideo).catch(e => console.error('Supabase video sync error:', e));
           
           // Create notification
           newNotifications.push({

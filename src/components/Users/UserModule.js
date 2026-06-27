@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Users, Plus, Edit2, Trash2, ArrowLeft, Mail, Phone, Upload, Download, FileSpreadsheet, Search, Shield, ShieldOff, XCircle } from 'lucide-react';
 import Sidebar from '../Sidebar';
+import DataManager from '../../services/dataManager';
 
 const UserModule = () => {
   const navigate = useNavigate();
@@ -99,13 +100,11 @@ const UserModule = () => {
     
     if (editingUser) {
       // Update existing user
-      const updatedUsers = users.map(user => 
-        user.id === editingUser.id 
-          ? { ...user, ...formData, updatedAt: new Date().toISOString() }
-          : user
-      );
+      const updatedUser = { ...editingUser, ...formData, updatedAt: new Date().toISOString() };
+      const updatedUsers = users.map(user => user.id === editingUser.id ? updatedUser : user);
       localStorage.setItem('users', JSON.stringify(updatedUsers));
       setUsers(updatedUsers);
+      DataManager.saveUser(updatedUser).catch(e => console.error('Supabase user sync error:', e));
     } else {
       // Add new user
       const newUser = {
@@ -117,6 +116,7 @@ const UserModule = () => {
       const updatedUsers = [...users, newUser];
       localStorage.setItem('users', JSON.stringify(updatedUsers));
       setUsers(updatedUsers);
+      DataManager.saveUser(newUser).catch(e => console.error('Supabase user sync error:', e));
     }
 
     resetForm();
