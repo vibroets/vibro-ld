@@ -89,7 +89,11 @@ const ApprovalWorkflow = () => {
               ...approval,
               status: 'approved',
               approvedAt: new Date().toISOString(),
-              approvedBy: currentUser?.name || 'Admin'
+              approvedBy: currentUser?.name || 'Admin',
+              approvals: [
+                ...(approval.approvals || []),
+                { level, approverId: currentUser?.id, approvedBy: currentUser?.name || 'Admin', approvedAt: new Date().toISOString() }
+              ]
             };
           } else {
             return {
@@ -97,7 +101,7 @@ const ApprovalWorkflow = () => {
               currentLevel: oldLevels[oldCurrentIndex + 1],
               approvals: [
                 ...(approval.approvals || []),
-                { level, approvedBy: currentUser?.name || 'Admin', approvedAt: new Date().toISOString() }
+                { level, approverId: currentUser?.id, approvedBy: currentUser?.name || 'Admin', approvedAt: new Date().toISOString() }
               ]
             };
           }
@@ -110,7 +114,11 @@ const ApprovalWorkflow = () => {
             ...approval,
             status: 'approved',
             approvedAt: new Date().toISOString(),
-            approvedBy: currentUser?.name || 'Admin'
+            approvedBy: currentUser?.name || 'Admin',
+            approvals: [
+              ...(approval.approvals || []),
+              { level, approverId: currentUser?.id, approvedBy: currentUser?.name || 'Admin', approvedAt: new Date().toISOString() }
+            ]
           };
         } else {
           // Move to next level in chain
@@ -304,8 +312,18 @@ const ApprovalWorkflow = () => {
     if (!currentUser) return [];
     
     return approvals.filter(approval => {
-      if (!approval.approvals) return false;
-      return approval.approvals.some(a => a.approverId === currentUser.id);
+      // Check in the approvals array for a record with matching approverId or approvedBy
+      if (approval.approvals && approval.approvals.length > 0) {
+        return approval.approvals.some(a => 
+          a.approverId === currentUser.id ||
+          a.approvedBy === currentUser.name
+        );
+      }
+      // Fallback: if final approver and status is approved, check approvedBy name
+      if (approval.status === 'approved' && approval.approvedBy === currentUser.name) {
+        return true;
+      }
+      return false;
     });
   };
 
