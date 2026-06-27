@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, AlertCircle, ArrowLeft, Clock } from 'lucide-react';
 import Sidebar from '../Sidebar';
+import DataManager from '../../services/dataManager';
 import {
   prepareQuestionsForAttempt,
   checkAnswerCorrect,
@@ -523,6 +524,7 @@ const UserQuiz = () => {
         if (resultIndex !== -1) {
           existingResults[resultIndex] = result;
           localStorage.setItem('quizResults', JSON.stringify(existingResults));
+          DataManager.saveQuizResult(result).catch(e => console.error('Supabase quiz result sync error:', e));
         }
       }
     }
@@ -583,6 +585,7 @@ const UserQuiz = () => {
         const existingResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
         existingResults.push(result);
         localStorage.setItem('quizResults', JSON.stringify(existingResults));
+        DataManager.saveQuizResult(result).catch(e => console.error('Supabase quiz result sync error:', e));
       }
     }
     return () => clearTimeout(timer);
@@ -754,6 +757,7 @@ const UserQuiz = () => {
       existingResults.push(result);
     }
     localStorage.setItem('quizResults', JSON.stringify(existingResults));
+    DataManager.saveQuizResult(result).catch(e => console.error('Supabase quiz result sync error:', e));
 
     // Check out from training - update attendance record
     const attendances = JSON.parse(localStorage.getItem('attendances') || '[]');
