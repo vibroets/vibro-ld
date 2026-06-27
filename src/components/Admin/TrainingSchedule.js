@@ -205,10 +205,21 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
         (formData.endTime > t.startTime && formData.endTime <= t.endTime) ||
         (formData.startTime <= t.startTime && formData.endTime >= t.endTime)
       ) &&
-      t.status !== 'completed'
+      t.status !== 'completed' &&
+      !isTrainingTimePassed(t)
     );
 
     return !conflictingTraining;
+  };
+
+  const isTrainingTimePassed = (training) => {
+    // Check if the training's end time has passed
+    if (!training.startDate || !training.endTime) return false;
+    
+    const trainingEndDateTime = new Date(`${training.startDate}T${training.endTime}`);
+    const now = new Date();
+    
+    return trainingEndDateTime < now;
   };
 
   const handleVenueChange = (e) => {
