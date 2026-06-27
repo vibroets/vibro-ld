@@ -71,13 +71,16 @@ export const DataManager = {
   },
 
   async saveTrainingSchedule(training) {
+    console.log('DataManager.saveTrainingSchedule called with:', training);
+    console.log('Is training an array?', Array.isArray(training));
     // Save to localStorage
     if (Array.isArray(training)) {
       localStorage.setItem('trainingSchedules', JSON.stringify(training));
+      console.log('Saved training array to localStorage, length:', training.length);
       // Save all to Supabase
       try {
         await supabaseSaveAllTrainingSchedules(training);
-        console.log('Saved all training schedules to Supabase');
+        console.log('Saved all training schedules to Supabase successfully');
       } catch (error) {
         console.error('Supabase save error for training schedules:', error);
       }
@@ -90,9 +93,10 @@ export const DataManager = {
     if (idx >= 0) schedules[idx] = training;
     else schedules.push(training);
     localStorage.setItem('trainingSchedules', JSON.stringify(schedules));
+    console.log('Saved single training to localStorage:', training.id);
     try {
       await supabaseSaveTrainingSchedule(training);
-      console.log('Saved training schedule to Supabase:', training.id);
+      console.log('Saved training schedule to Supabase successfully:', training.id);
     } catch (error) {
       console.error('Supabase save error for training schedule:', error);
     }

@@ -97,7 +97,8 @@ const TrainingCalendar = () => {
       }
 
       await DataManager.saveTrainingSchedule(updatedTrainings);
-      console.log('Saved trainings:', updatedTrainings);
+      console.log('Saved trainings to localStorage and Supabase:', updatedTrainings);
+      console.log('Number of trainings saved:', updatedTrainings.length);
       setTrainings(updatedTrainings);
       setShowCreateModal(false);
       setEditingTraining(null);
