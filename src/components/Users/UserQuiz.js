@@ -120,7 +120,7 @@ const UserQuiz = () => {
         const timeoutPromise = new Promise((_, reject) => {
           timeoutId = setTimeout(() => {
             reject(new Error('Video loading timeout - please try again'));
-          }, 10000); // 10 second timeout
+          }, 5000); // 5 second timeout
         });
         
         Promise.race([getVideoFromIndexedDB(videoId), timeoutPromise])
@@ -363,13 +363,13 @@ const UserQuiz = () => {
           setQuizStarted(false);
           setVideoCompleted(false);
           
-          // Auto-skip video after 15 seconds if it doesn't load
+          // Auto-skip video after 5 seconds if it doesn't load
           const autoSkipTimeout = setTimeout(() => {
             setVideoCompleted(true);
             if (!trainingConfirmationRequired) {
               setQuizStarted(true);
             }
-          }, 15000);
+          }, 5000);
           
           // Clear timeout if component unmounts
           return () => clearTimeout(autoSkipTimeout);
@@ -414,13 +414,13 @@ const UserQuiz = () => {
         }
       }
       
-      // Auto-skip video after 15 seconds if it doesn't load
+      // Auto-skip video after 5 seconds if it doesn't load
       const autoSkipTimeout = setTimeout(() => {
         setVideoCompleted(true);
         if (!trainingConfirmationRequired) {
           setQuizStarted(true);
         }
-      }, 15000);
+      }, 5000);
       
       // Shuffle all questions first, then select the subset so every question type has a chance to appear.
       if (foundVideo.questions && foundVideo.questions.length > 0) {
