@@ -98,7 +98,6 @@ export const saveTrainingSchedule = async (training) => {
   const supabaseData = {
     id: training.id,
     title: training.title,
-    status: training.status,
     data: training,
     created_at: training.createdAt || new Date().toISOString(),
     updated_at: training.updatedAt || new Date().toISOString()
@@ -108,7 +107,7 @@ export const saveTrainingSchedule = async (training) => {
     .upsert(supabaseData, { onConflict: 'id' });
   if (error) {
     // Fallback: try without data column (schema may not have it yet)
-    const basicData = { id: training.id, title: training.title, status: training.status, created_at: training.createdAt || new Date().toISOString(), updated_at: training.updatedAt || new Date().toISOString() };
+    const basicData = { id: training.id, title: training.title, created_at: training.createdAt || new Date().toISOString(), updated_at: training.updatedAt || new Date().toISOString() };
     const { data: data2, error: error2 } = await supabase
       .from('training_schedules')
       .upsert(basicData, { onConflict: 'id' });
@@ -123,7 +122,6 @@ export const saveAllTrainingSchedules = async (trainings) => {
   const rows = trainings.map(t => ({
     id: t.id,
     title: t.title,
-    status: t.status,
     data: t,
     created_at: t.createdAt || new Date().toISOString(),
     updated_at: t.updatedAt || new Date().toISOString()
@@ -133,7 +131,7 @@ export const saveAllTrainingSchedules = async (trainings) => {
     .upsert(rows, { onConflict: 'id' });
   if (error) {
     // Fallback: try without data column
-    const basicRows = trainings.map(t => ({ id: t.id, title: t.title, status: t.status, created_at: t.createdAt || new Date().toISOString(), updated_at: t.updatedAt || new Date().toISOString() }));
+    const basicRows = trainings.map(t => ({ id: t.id, title: t.title, created_at: t.createdAt || new Date().toISOString(), updated_at: t.updatedAt || new Date().toISOString() }));
     const { data: data2, error: error2 } = await supabase
       .from('training_schedules')
       .upsert(basicRows, { onConflict: 'id' });
