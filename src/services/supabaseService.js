@@ -8,9 +8,22 @@ export const getUsers = async () => {
 };
 
 export const saveUser = async (user) => {
+  const supabaseUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    password: user.password,
+    designation: user.designation,
+    is_admin: user.isAdmin,
+    is_super_admin: user.isSuperAdmin,
+    module_access: user.moduleAccess,
+    created_at: user.createdAt || new Date().toISOString(),
+    updated_at: user.updatedAt || new Date().toISOString()
+  };
   const { data, error } = await supabase
     .from('users')
-    .upsert(user, { onConflict: 'id' });
+    .upsert(supabaseUser, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
@@ -203,9 +216,22 @@ export const getVideos = async () => {
 };
 
 export const saveVideo = async (video) => {
+  const supabaseVideo = {
+    id: video.id,
+    title: video.title,
+    description: video.description,
+    url: video.url,
+    thumbnail: video.thumbnail,
+    duration: video.duration,
+    selected_users: video.selectedUsers,
+    shared_with: video.sharedWith,
+    created_by: video.createdBy,
+    created_at: video.createdAt || new Date().toISOString(),
+    updated_at: video.updatedAt || new Date().toISOString()
+  };
   const { data, error } = await supabase
     .from('videos')
-    .upsert(video, { onConflict: 'id' });
+    .upsert(supabaseVideo, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
