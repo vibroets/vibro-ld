@@ -145,10 +145,16 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     }
 
     if (field === 'venueId' && value) {
+      // If no date is selected, don't show venue conflict
+      if (!formData.startDate) {
+        return;
+      }
+      
       const venueTrainings = trainingSchedulesArray.filter(t => 
         t.venueId === value && 
         t.id !== trainingData?.id &&
-        t.startDate === formData.startDate
+        t.startDate === formData.startDate &&
+        !isTrainingTimePassed(t)
       );
       if (venueTrainings.length > 0) {
         conflicts.push('Venue is already booked on this date');
