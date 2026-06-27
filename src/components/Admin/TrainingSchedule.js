@@ -177,6 +177,12 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     console.log('Selected start time:', formData.startTime);
     console.log('Selected end time:', formData.endTime);
 
+    // If no date is selected, show all trainers as available
+    if (!formData.startDate) {
+      console.log('No date selected, marking trainer as available');
+      return true;
+    }
+
     // Check if trainer has availability schedule
     if (!trainer.availability) {
       console.log('Trainer has no availability schedule, marking as available');
