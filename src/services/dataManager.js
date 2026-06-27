@@ -1,4 +1,4 @@
-import { getQuizzes, saveQuiz, getQuizResults, saveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin } from './supabaseService';
+import { getQuizzes, saveQuiz, getQuizResults as supabaseGetQuizResults, saveQuizResult as supabaseSaveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin } from './supabaseService';
 
 // Unified data manager that handles both Supabase and localStorage fallback
 export const DataManager = {
@@ -106,15 +106,42 @@ export const DataManager = {
 
   // Quiz Results
   async getQuizResults() {
-    // Use localStorage only for quiz results due to Supabase schema mismatch
+    // Try Supabase first, merge with localStorage results
     const localData = JSON.parse(localStorage.getItem('quizResults') || '[]');
-    const results = Array.isArray(localData) ? localData : [];
-    console.log('Loaded quiz results from localStorage:', results.length);
-    return results;
+    const localResults = Array.isArray(localData) ? localData : [];
+    try {
+      const supabaseResults = await supabaseGetQuizResults();
+      if (supabaseResults && supabaseResults.length > 0) {
+        // Normalize Supabase snake_case fields to camelCase
+        const normalizedSupabase = supabaseResults.map(sr => ({
+          ...sr,
+          quizId: sr.quizId || sr.quiz_id,
+          userId: sr.userId || sr.user_id,
+          userName: sr.userName || sr.user_name,
+          correctAnswers: sr.correctAnswers || sr.correct_answers,
+          totalQuestions: sr.totalQuestions || sr.total_questions,
+          completedAt: sr.completedAt || sr.completed_at
+        }));
+        // Merge: use local results as base, add any Supabase results not already in local
+        const merged = [...localResults];
+        normalizedSupabase.forEach(sr => {
+          const exists = merged.some(lr => lr.quizId === sr.quizId && lr.userId === sr.userId && lr.completedAt === sr.completedAt);
+          if (!exists) merged.push(sr);
+        });
+        // Update localStorage with merged results
+        localStorage.setItem('quizResults', JSON.stringify(merged));
+        console.log('Loaded quiz results (merged localStorage + Supabase):', merged.length);
+        return merged;
+      }
+    } catch (error) {
+      console.error('Supabase error for quizResults, using localStorage only:', error);
+    }
+    console.log('Loaded quiz results from localStorage:', localResults.length);
+    return localResults;
   },
 
   async saveQuizResult(result) {
-    // Use localStorage only for quiz results
+    // Always save to localStorage first
     const localData = JSON.parse(localStorage.getItem('quizResults') || '[]');
     const results = Array.isArray(localData) ? localData : [];
     const existingIndex = results.findIndex(r => r.quizId === result.quizId && r.userId === result.userId && r.completedAt === result.completedAt);
@@ -124,7 +151,23 @@ export const DataManager = {
       results.push(result);
     }
     localStorage.setItem('quizResults', JSON.stringify(results));
-    console.log('Saved quiz result to localStorage:', result);
+    // Also try to save to Supabase with only safe core fields
+    try {
+      const supabaseResult = {
+        id: result.id || `${result.userId}-${result.quizId}-${Date.now()}`,
+        quiz_id: result.quizId,
+        user_id: result.userId,
+        user_name: result.userName,
+        score: result.score,
+        correct_answers: result.correctAnswers,
+        total_questions: result.totalQuestions,
+        completed_at: result.completedAt
+      };
+      await supabaseSaveQuizResult(supabaseResult);
+      console.log('Saved quiz result to Supabase:', supabaseResult);
+    } catch (error) {
+      console.error('Supabase save error for quizResult, saved to localStorage only:', error);
+    }
     return true;
   },
 
