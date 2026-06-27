@@ -106,11 +106,26 @@ export const DataManager = {
 
   // Quiz Results
   async getQuizResults() {
-    return this.getData('quizResults', getQuizResults);
+    // Use localStorage only for quiz results due to Supabase schema mismatch
+    const localData = JSON.parse(localStorage.getItem('quizResults') || '[]');
+    const results = Array.isArray(localData) ? localData : [];
+    console.log('Loaded quiz results from localStorage:', results.length);
+    return results;
   },
 
   async saveQuizResult(result) {
-    return this.saveData('quizResults', result, saveQuizResult);
+    // Use localStorage only for quiz results
+    const localData = JSON.parse(localStorage.getItem('quizResults') || '[]');
+    const results = Array.isArray(localData) ? localData : [];
+    const existingIndex = results.findIndex(r => r.quizId === result.quizId && r.userId === result.userId && r.completedAt === result.completedAt);
+    if (existingIndex >= 0) {
+      results[existingIndex] = result;
+    } else {
+      results.push(result);
+    }
+    localStorage.setItem('quizResults', JSON.stringify(results));
+    console.log('Saved quiz result to localStorage:', result);
+    return true;
   },
 
   // Videos
