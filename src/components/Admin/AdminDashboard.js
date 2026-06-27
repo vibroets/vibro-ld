@@ -139,11 +139,17 @@ const AdminDashboard = () => {
   }, [certificates, certSearchTerm]);
 
   const loadData = () => {
-    const storedUsers = JSON.parse(localStorage.getItem('users') || '[]');
-    const storedQuizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-    const storedVideos = JSON.parse(localStorage.getItem('videos') || '[]');
-    const storedResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
-    const storedCertificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+    const storedUsersRaw = JSON.parse(localStorage.getItem('users') || '[]');
+    const storedQuizzesRaw = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    const storedVideosRaw = JSON.parse(localStorage.getItem('videos') || '[]');
+    const storedResultsRaw = JSON.parse(localStorage.getItem('quizResults') || '[]');
+    const storedCertificatesRaw = JSON.parse(localStorage.getItem('certificates') || '[]');
+
+    const storedUsers = Array.isArray(storedUsersRaw) ? storedUsersRaw : [];
+    const storedQuizzes = Array.isArray(storedQuizzesRaw) ? storedQuizzesRaw : [];
+    const storedVideos = Array.isArray(storedVideosRaw) ? storedVideosRaw : [];
+    const storedResults = Array.isArray(storedResultsRaw) ? storedResultsRaw : [];
+    const storedCertificates = Array.isArray(storedCertificatesRaw) ? storedCertificatesRaw : [];
     
     // Sort certificates by issue date (newest first)
     storedCertificates.sort((a, b) => new Date(b.issuedAt) - new Date(a.issuedAt));
@@ -151,7 +157,8 @@ const AdminDashboard = () => {
     setFilteredCertificates(storedCertificates);
 
     // Load training items for source lookup
-    const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+    const trainingItemsRaw = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+    const trainingItems = Array.isArray(trainingItemsRaw) ? trainingItemsRaw : [];
 
     // Helper function to get correct source info
     const getSourceInfo = (quizId) => {
