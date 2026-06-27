@@ -70,7 +70,8 @@ const AdminLogin = () => {
 
   useEffect(() => {
     // Load all users to check if email is admin
-    let users = JSON.parse(localStorage.getItem('users') || '[]');
+    const usersRaw = JSON.parse(localStorage.getItem('users') || '[]');
+    let users = Array.isArray(usersRaw) ? usersRaw : [];
     
     // Ensure all admin users have designation field and correct isSuperAdmin flag
     let usersUpdated = false;
