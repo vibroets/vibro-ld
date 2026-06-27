@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Trash2, UserCheck, CheckCircle, XCircle, Clock, AlertCircle } from 'lucide-react';
 import Sidebar from '../Sidebar';
+import DataManager from '../../services/dataManager';
 
 const ParticipantEnrollment = () => {
   const [ltContent, setLtContent] = useState([]); // L&T content (quizzes, videos, training items)
@@ -221,6 +222,8 @@ const ParticipantEnrollment = () => {
           
           console.log('ParticipantEnrollment: Updated trainingSchedules:', updatedTrainingSchedules);
           localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainingSchedules));
+          // Sync to Supabase
+          DataManager.saveTrainingSchedule(updatedTrainingSchedules).catch(e => console.error('Supabase sync error:', e));
           
           // Create notification
           newNotifications.push({

@@ -39,29 +39,44 @@ export const saveAdmin = async (admin) => {
 export const getTrainingSchedules = async () => {
   const { data, error } = await supabase.from('training_schedules').select('*').order('created_at', { ascending: false });
   if (error) throw error;
-  
-  // Convert snake_case to camelCase for consistency with localStorage
-  return data.map(item => ({
-    ...item,
-    createdAt: item.created_at,
-    updatedAt: item.updated_at
-  }));
+  // If rows have a 'data' JSONB column, return those; otherwise return mapped rows
+  return data.map(item => {
+    if (item.data && typeof item.data === 'object') {
+      return { ...item.data, id: item.id, status: item.status || item.data.status };
+    }
+    return { ...item, createdAt: item.created_at, updatedAt: item.updated_at };
+  });
 };
 
 export const saveTrainingSchedule = async (training) => {
-  // Convert camelCase to snake_case for Supabase
-  // Only include core fields that are likely to exist in any training_schedules table
   const supabaseData = {
     id: training.id,
     title: training.title,
     status: training.status,
+    data: training, // Store full training object as JSONB
     created_at: training.createdAt || new Date().toISOString(),
     updated_at: training.updatedAt || new Date().toISOString()
   };
-  
   const { data, error } = await supabase
     .from('training_schedules')
     .upsert(supabaseData, { onConflict: 'id' });
+  if (error) throw error;
+  return data;
+};
+
+export const saveAllTrainingSchedules = async (trainings) => {
+  if (!Array.isArray(trainings) || trainings.length === 0) return;
+  const rows = trainings.map(t => ({
+    id: t.id,
+    title: t.title,
+    status: t.status,
+    data: t,
+    created_at: t.createdAt || new Date().toISOString(),
+    updated_at: t.updatedAt || new Date().toISOString()
+  }));
+  const { data, error } = await supabase
+    .from('training_schedules')
+    .upsert(rows, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };
@@ -75,13 +90,47 @@ export const deleteTrainingSchedule = async (trainingId) => {
 export const getAttendances = async () => {
   const { data, error } = await supabase.from('attendances').select('*');
   if (error) throw error;
-  return data;
+  return data.map(item => {
+    if (item.data && typeof item.data === 'object') {
+      return { ...item.data, id: item.id };
+    }
+    return item;
+  });
 };
 
 export const saveAttendance = async (attendance) => {
+  const supabaseData = {
+    id: attendance.id,
+    training_id: attendance.trainingId,
+    user_id: attendance.userId,
+    status: attendance.status,
+    data: attendance,
+  };
   const { data, error } = await supabase
     .from('attendances')
-    .upsert(attendance, { onConflict: 'id' });
+    .upsert(supabaseData, { onConflict: 'id' });
+  if (error) throw error;
+  return data;
+};
+
+// Enrollments
+export const getEnrollments = async () => {
+  const { data, error } = await supabase.from('enrollments').select('*');
+  if (error) throw error;
+  return data.map(item => item.data && typeof item.data === 'object' ? { ...item.data, id: item.id } : item);
+};
+
+export const saveEnrollment = async (enrollment) => {
+  const supabaseData = {
+    id: enrollment.id,
+    content_id: enrollment.contentId,
+    participant_id: enrollment.participantId,
+    status: enrollment.status,
+    data: enrollment,
+  };
+  const { data, error } = await supabase
+    .from('enrollments')
+    .upsert(supabaseData, { onConflict: 'id' });
   if (error) throw error;
   return data;
 };

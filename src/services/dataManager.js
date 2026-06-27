@@ -1,4 +1,4 @@
-import { getQuizzes, saveQuiz, getQuizResults as supabaseGetQuizResults, saveQuizResult as supabaseSaveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin } from './supabaseService';
+import { getQuizzes, saveQuiz, getQuizResults as supabaseGetQuizResults, saveQuizResult as supabaseSaveQuizResult, getVideos, saveVideo, getCertificates, saveCertificate, getUsers, saveUser, getAdmins, saveAdmin, getTrainingSchedules as supabaseGetTrainingSchedules, saveTrainingSchedule as supabaseSaveTrainingSchedule, saveAllTrainingSchedules as supabaseSaveAllTrainingSchedules, getAttendances as supabaseGetAttendances, saveAttendance as supabaseSaveAttendance } from './supabaseService';
 
 // Unified data manager that handles both Supabase and localStorage fallback
 export const DataManager = {
@@ -48,50 +48,103 @@ export const DataManager = {
 
   // Training Schedules
   async getTrainingSchedules() {
-    // Use localStorage only for training schedules due to Supabase schema mismatch
     const localData = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
-    console.log('Loaded training schedules from localStorage:', localData);
-    return localData;
+    const localSchedules = Array.isArray(localData) ? localData : [];
+    try {
+      const supabaseSchedules = await supabaseGetTrainingSchedules();
+      if (supabaseSchedules && supabaseSchedules.length > 0) {
+        // Merge: local first (has participants), add any Supabase-only records
+        const merged = [...localSchedules];
+        supabaseSchedules.forEach(sr => {
+          const exists = merged.some(lr => lr.id === sr.id);
+          if (!exists) merged.push(sr);
+          else {
+            // Update local if Supabase has newer updatedAt
+            const localIdx = merged.findIndex(lr => lr.id === sr.id);
+            if (sr.updatedAt && merged[localIdx].updatedAt && new Date(sr.updatedAt) > new Date(merged[localIdx].updatedAt)) {
+              merged[localIdx] = sr;
+            }
+          }
+        });
+        localStorage.setItem('trainingSchedules', JSON.stringify(merged));
+        console.log('Loaded training schedules (merged localStorage + Supabase):', merged.length);
+        return merged;
+      }
+    } catch (error) {
+      console.error('Supabase error for trainingSchedules, using localStorage:', error);
+    }
+    console.log('Loaded training schedules from localStorage:', localSchedules.length);
+    return localSchedules;
   },
 
   async saveTrainingSchedule(training) {
-    // Use localStorage only for training schedules due to Supabase schema mismatch
+    // Save to localStorage
     if (Array.isArray(training)) {
       localStorage.setItem('trainingSchedules', JSON.stringify(training));
-      console.log('Saved training schedules to localStorage');
+      // Save all to Supabase
+      try {
+        await supabaseSaveAllTrainingSchedules(training);
+        console.log('Saved all training schedules to Supabase');
+      } catch (error) {
+        console.error('Supabase save error for training schedules:', error);
+      }
       return true;
     }
-    localStorage.setItem('trainingSchedules', JSON.stringify(training));
-    console.log('Saved training schedule to localStorage');
+    // Single training save
+    const localData = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
+    const schedules = Array.isArray(localData) ? localData : [];
+    const idx = schedules.findIndex(t => t.id === training.id);
+    if (idx >= 0) schedules[idx] = training;
+    else schedules.push(training);
+    localStorage.setItem('trainingSchedules', JSON.stringify(schedules));
+    try {
+      await supabaseSaveTrainingSchedule(training);
+      console.log('Saved training schedule to Supabase:', training.id);
+    } catch (error) {
+      console.error('Supabase save error for training schedule:', error);
+    }
     return true;
   },
 
   // Attendances
   async getAttendances() {
-    // Use localStorage only for attendances due to Supabase schema mismatch
     const localData = JSON.parse(localStorage.getItem('attendances') || '[]');
-    // Handle case where data is an object instead of array
-    const attendances = Array.isArray(localData) ? localData : [];
-    console.log('Loaded attendances from localStorage:', attendances);
-    return attendances;
+    const localAttendances = Array.isArray(localData) ? localData : [];
+    try {
+      const supabaseAttendances = await supabaseGetAttendances();
+      if (supabaseAttendances && supabaseAttendances.length > 0) {
+        const merged = [...localAttendances];
+        supabaseAttendances.forEach(sa => {
+          const exists = merged.some(la => la.id === sa.id);
+          if (!exists) merged.push(sa);
+        });
+        localStorage.setItem('attendances', JSON.stringify(merged));
+        console.log('Loaded attendances (merged localStorage + Supabase):', merged.length);
+        return merged;
+      }
+    } catch (error) {
+      console.error('Supabase error for attendances, using localStorage:', error);
+    }
+    console.log('Loaded attendances from localStorage:', localAttendances.length);
+    return localAttendances;
   },
 
   async saveAttendance(attendance) {
-    // Use localStorage only for attendances due to Supabase schema mismatch
     const localData = JSON.parse(localStorage.getItem('attendances') || '[]');
-    // Handle case where data is an object instead of array
     const attendances = Array.isArray(localData) ? localData : [];
-    
-    // Check if attendance with same ID exists, update it, otherwise add new
     const existingIndex = attendances.findIndex(a => a.id === attendance.id);
     if (existingIndex >= 0) {
       attendances[existingIndex] = attendance;
     } else {
       attendances.push(attendance);
     }
-    
     localStorage.setItem('attendances', JSON.stringify(attendances));
-    console.log('Saved attendance to localStorage:', attendance);
+    try {
+      await supabaseSaveAttendance(attendance);
+      console.log('Saved attendance to Supabase:', attendance.id);
+    } catch (error) {
+      console.error('Supabase save error for attendance:', error);
+    }
     return true;
   },
 

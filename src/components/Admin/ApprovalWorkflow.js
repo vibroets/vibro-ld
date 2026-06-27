@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CheckCircle, XCircle, Clock, FileText, AlertCircle } from 'lucide-react';
 import Sidebar from '../Sidebar';
+import DataManager from '../../services/dataManager';
 
 const ApprovalWorkflow = () => {
   const [approvals, setApprovals] = useState([]);
@@ -159,6 +160,7 @@ const ApprovalWorkflow = () => {
       });
       console.log('Updated trainingSchedules:', updatedTrainings);
       localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
+      DataManager.saveTrainingSchedule(updatedTrainings).catch(e => console.error('Supabase sync error:', e));
       // Dispatch custom event to notify other components
       window.dispatchEvent(new CustomEvent('trainingUpdated', { detail: { trainingId: approval.trainingId } }));
     }

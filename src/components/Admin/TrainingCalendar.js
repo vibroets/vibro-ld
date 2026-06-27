@@ -153,6 +153,7 @@ const TrainingCalendar = () => {
       }
 
       localStorage.setItem('trainingSchedules', JSON.stringify(updatedTrainings));
+      DataManager.saveTrainingSchedule(updatedTrainings).catch(e => console.error('Supabase sync error:', e));
       setTrainings(updatedTrainings);
       setShowCreateModal(false);
       setEditingTraining(null);
