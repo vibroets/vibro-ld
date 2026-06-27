@@ -118,35 +118,17 @@ const UserTrainingCalendar = () => {
           }
         }
         
-        // Check if training has expired (past end date and time)
+        // Check if training has expired: only hide if end date is strictly before today (not today)
         const isExpired = (() => {
-          if (!training.endDate || !training.endTime) return false;
-          const endDateTime = new Date(`${training.endDate}T${training.endTime}`);
-          const now = new Date();
-          return now > endDateTime;
+          if (!training.endDate) return false;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const endDate = new Date(training.endDate);
+          endDate.setHours(0, 0, 0, 0);
+          return endDate < today; // Only expired if end date is before today
         })();
         
-        // Check if grace time has expired (user hasn't checked in within grace time after start)
-        const isGraceTimeExpired = (() => {
-          if (!training.startDate || !training.startTime) return false;
-          const graceTimeMinutes = training.graceTime || 0;
-          if (graceTimeMinutes === 0) return false; // No grace time restriction
-          
-          const startDateTime = new Date(`${training.startDate}T${training.startTime}`);
-          const graceTimeEnd = new Date(startDateTime.getTime() + graceTimeMinutes * 60000);
-          const now = new Date();
-          
-          // Check if user has already checked in
-          const hasCheckedIn = attendances.some(a => 
-            a.trainingId === training.id && 
-            a.userId === user.id && 
-            a.status === 'checked-in'
-          );
-          
-          if (hasCheckedIn) return false; // User already checked in, no restriction
-          
-          return now > graceTimeEnd; // Grace time expired and user hasn't checked in
-        })();
+        const isGraceTimeExpired = false; // Grace time no longer hides trainings from calendar
         
         console.log(`UserTrainingCalendar: Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Is grace time expired: ${isGraceTimeExpired}, Completed attendance:`, completedAttendance);
         return isParticipant && isApproved && !isCompleted && !isExpired && !isGraceTimeExpired;
@@ -193,35 +175,17 @@ const UserTrainingCalendar = () => {
         );
         const isCompleted = !!completedAttendance;
         
-        // Check if training has expired (past end date and time)
+        // Check if training has expired: only hide if end date is strictly before today
         const isExpired = (() => {
-          if (!training.endDate || !training.endTime) return false;
-          const endDateTime = new Date(`${training.endDate}T${training.endTime}`);
-          const now = new Date();
-          return now > endDateTime;
+          if (!training.endDate) return false;
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const endDate = new Date(training.endDate);
+          endDate.setHours(0, 0, 0, 0);
+          return endDate < today;
         })();
         
-        // Check if grace time has expired (user hasn't checked in within grace time after start)
-        const isGraceTimeExpired = (() => {
-          if (!training.startDate || !training.startTime) return false;
-          const graceTimeMinutes = training.graceTime || 0;
-          if (graceTimeMinutes === 0) return false; // No grace time restriction
-          
-          const startDateTime = new Date(`${training.startDate}T${training.startTime}`);
-          const graceTimeEnd = new Date(startDateTime.getTime() + graceTimeMinutes * 60000);
-          const now = new Date();
-          
-          // Check if user has already checked in
-          const hasCheckedIn = attendances.some(a => 
-            a.trainingId === training.id && 
-            a.userId === user.id && 
-            a.status === 'checked-in'
-          );
-          
-          if (hasCheckedIn) return false; // User already checked in, no restriction
-          
-          return now > graceTimeEnd; // Grace time expired and user hasn't checked in
-        })();
+        const isGraceTimeExpired = false; // Grace time no longer hides trainings from calendar
         
         console.log(`UserTrainingCalendar: Fallback - Is participant: ${isParticipant}, Is approved: ${isApproved}, Is completed: ${isCompleted}, Is expired: ${isExpired}, Is grace time expired: ${isGraceTimeExpired}, Completed attendance:`, completedAttendance);
         return isParticipant && isApproved && !isCompleted && !isExpired && !isGraceTimeExpired;
