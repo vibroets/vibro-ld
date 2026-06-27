@@ -119,12 +119,18 @@ const LTModule = () => {
   const [showVideoBulkUpload, setShowVideoBulkUpload] = useState(false);
 
   const loadData = useCallback(() => {
-    setUsers(JSON.parse(localStorage.getItem('users') || '[]'));
-    setQuizzes(JSON.parse(localStorage.getItem('quizzes') || '[]'));
-    setVideos(JSON.parse(localStorage.getItem('videos') || '[]'));
+    const usersData = JSON.parse(localStorage.getItem('users') || '[]');
+    setUsers(Array.isArray(usersData) ? usersData : []);
+
+    const quizzesData = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    setQuizzes(Array.isArray(quizzesData) ? quizzesData : []);
+
+    const videosData = JSON.parse(localStorage.getItem('videos') || '[]');
+    setVideos(Array.isArray(videosData) ? videosData : []);
+
+    const trainingItemsData = JSON.parse(localStorage.getItem('trainingItems') || '[]');
     setTrainingItems(
-      JSON.parse(localStorage.getItem('trainingItems') || '[]')
-        .map(normalizeTrainingItem)
+      Array.isArray(trainingItemsData) ? trainingItemsData.map(normalizeTrainingItem) : []
     );
   }, []);
 
@@ -2612,7 +2618,7 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                   </button>
                 </div>
 
-                {videos.length === 0 ? (
+                {!Array.isArray(videos) || videos.length === 0 ? (
                   <div className="bg-white rounded-lg shadow p-12 text-center">
                     <Video className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                     <p className="text-gray-600">No videos added yet</p>
@@ -2622,7 +2628,7 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                   <div className="bg-white rounded-lg shadow overflow-hidden">
                     {/* Mobile: Card layout */}
                     <div className="md:hidden divide-y divide-gray-200">
-                      {videos.map((video) => {
+                      {Array.isArray(videos) && videos.map((video) => {
                         const quizResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
                         const attempted = new Set(quizResults.filter(r => r.quizId === video.id).map(r => r.userId)).size;
                         return (
@@ -2708,7 +2714,7 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-200">
-                          {videos.map((video) => {
+                          {Array.isArray(videos) && videos.map((video) => {
                             const quizResults = JSON.parse(localStorage.getItem('quizResults') || '[]');
                             const attempted = new Set(quizResults.filter(r => r.quizId === video.id).map(r => r.userId)).size;
                             return (
@@ -3878,7 +3884,7 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
                               <option key={quiz.id} value={quiz.id}>{quiz.title}</option>
                             ))
                           ) : (
-                            videos.map((video) => (
+                            Array.isArray(videos) && videos.map((video) => (
                               <option key={video.id} value={video.id}>{video.title}</option>
                             ))
                           )}
