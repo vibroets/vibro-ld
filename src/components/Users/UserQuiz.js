@@ -87,6 +87,7 @@ const UserQuiz = () => {
   const [showVideo, setShowVideo] = useState(false);
   const [videoCompleted, setVideoCompleted] = useState(false);
   const [videoProgress, setVideoProgress] = useState(0);
+  const [maxWatchedPosition, setMaxWatchedPosition] = useState(0);
   const [warningMessage, setWarningMessage] = useState('');
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
   const [user, setUser] = useState(null);
@@ -163,18 +164,7 @@ const UserQuiz = () => {
         <div className="w-full h-96 bg-gray-200 rounded flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <div className="text-sm text-gray-600 mb-4">Loading video...</div>
-            <button
-              onClick={() => {
-                setVideoCompleted(true);
-                if (!trainingConfirmationRequired) {
-                  setQuizStarted(true);
-                }
-              }}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200"
-            >
-              Skip Video
-            </button>
+            <div className="text-sm text-gray-600">Loading video...</div>
           </div>
         </div>
       );
@@ -186,25 +176,12 @@ const UserQuiz = () => {
           <div className="text-center">
             <AlertCircle className="w-8 h-8 text-red-600 mx-auto mb-4" />
             <div className="text-sm text-red-600 mb-4">{error}</div>
-            <div className="space-y-2">
-              <button
-                onClick={() => {
-                  setVideoCompleted(true);
-                  if (!trainingConfirmationRequired) {
-                    setQuizStarted(true);
-                  }
-                }}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition duration-200 mr-2"
-              >
-                Skip to Quiz
-              </button>
-              <button
-                onClick={() => window.location.reload()}
-                className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200"
-              >
-                Refresh Page
-              </button>
-            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200"
+            >
+              Refresh Page
+            </button>
           </div>
         </div>
       );
@@ -415,6 +392,27 @@ const UserQuiz = () => {
       setShowVideo(true);
       setQuizStarted(false);
       setVideoCompleted(false);
+
+      // Load saved progress from localStorage
+      if (user && quizId) {
+        const progressKey = `videoProgress_${user.id}_${quizId}`;
+        const savedProgress = localStorage.getItem(progressKey);
+        if (savedProgress) {
+          try {
+            const parsed = JSON.parse(savedProgress);
+            setVideoProgress(parsed.progress || 0);
+            setMaxWatchedPosition(parsed.maxWatchedPosition || 0);
+            // Resume video from saved position after a short delay
+            setTimeout(() => {
+              if (videoRef.current) {
+                videoRef.current.currentTime = parsed.currentTime || 0;
+              }
+            }, 500);
+          } catch (e) {
+            console.error('Error loading video progress:', e);
+          }
+        }
+      }
       
       // Auto-skip video after 15 seconds if it doesn't load
       const autoSkipTimeout = setTimeout(() => {
@@ -635,10 +633,29 @@ const UserQuiz = () => {
 
   const handleVideoTimeUpdate = () => {
     if (videoRef.current) {
-      const progress = (videoRef.current.currentTime / videoRef.current.duration) * 100;
+      const currentTime = videoRef.current.currentTime;
+      const duration = videoRef.current.duration;
+      const progress = (currentTime / duration) * 100;
       setVideoProgress(progress);
-      
-      if (progress >= 95) {
+
+      // Track maximum watched position to prevent fast-forward
+      if (currentTime > maxWatchedPosition) {
+        setMaxWatchedPosition(currentTime);
+      }
+
+      // Save progress to localStorage for resume capability
+      if (user && quizId) {
+        const progressKey = `videoProgress_${user.id}_${quizId}`;
+        localStorage.setItem(progressKey, JSON.stringify({
+          currentTime,
+          duration,
+          progress,
+          maxWatchedPosition: Math.max(maxWatchedPosition, currentTime)
+        }));
+      }
+
+      // Only allow quiz at 100% completion
+      if (progress >= 100) {
         setVideoCompleted(true);
         if (!trainingConfirmationRequired) {
           setQuizStarted(true);
@@ -650,8 +667,13 @@ const UserQuiz = () => {
   const handleVideoSeeking = (e) => {
     e.preventDefault();
     if (videoRef.current) {
-      setWarningMessage('Video seeking is disabled. Please watch the entire video.');
-      setTimeout(() => setWarningMessage(''), 3000);
+      const currentTime = videoRef.current.currentTime;
+      // If user tries to seek forward beyond what they've watched, revert it
+      if (currentTime > maxWatchedPosition) {
+        videoRef.current.currentTime = maxWatchedPosition;
+        setWarningMessage('Fast-forwarding is disabled. Please watch the entire video.');
+        setTimeout(() => setWarningMessage(''), 3000);
+      }
     }
   };
 
@@ -1111,7 +1133,7 @@ const UserQuiz = () => {
               
               {/* Video Display */}
               <VideoPlayer videoUrl={quizData.videoUrl} />
-              
+
               {/* Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
                 <div 
@@ -1119,20 +1141,14 @@ const UserQuiz = () => {
                   style={{ width: `${videoProgress}%` }}
                 />
               </div>
-              
-              {/* Skip Video Button */}
+
+              {/* Progress Status */}
               <div className="mt-3 md:mt-4 text-center">
-                <button
-                  onClick={() => {
-                    setVideoCompleted(true);
-                    if (!trainingConfirmationRequired) {
-                      setQuizStarted(true);
-                    }
-                  }}
-                  className="px-3 md:px-4 py-2 bg-gray-600 text-white rounded-lg text-sm hover:bg-gray-700 transition duration-200"
-                >
-                  {trainingConfirmationRequired ? 'Continue to Confirmation' : 'Skip Video & Start Quiz'}
-                </button>
+                <p className="text-sm text-gray-600">
+                  Progress: <span className="font-semibold">{Math.round(videoProgress)}%</span>
+                  {videoProgress < 100 && <span className="ml-2 text-amber-600 font-medium">- Watch complete to start quiz</span>}
+                  {videoProgress >= 100 && <span className="ml-2 text-green-600 font-medium">- Complete! Quiz starting...</span>}
+                </p>
               </div>
             </div>
           )}
