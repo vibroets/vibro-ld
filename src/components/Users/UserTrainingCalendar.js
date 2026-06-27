@@ -394,7 +394,7 @@ const UserTrainingCalendar = () => {
       const contentId = ltContentIds[0];
       
       // Check if content is a quiz
-      const quiz = quizzes.find(q => q.id === contentId);
+      const quiz = quizzes.find(q => String(q.id) === String(contentId));
       if (quiz) {
         console.log(`Found quiz: ${quiz.title}`);
         navigate(`/quiz/${contentId}`);
@@ -402,15 +402,15 @@ const UserTrainingCalendar = () => {
       }
       
       // Check if content is a video
-      const video = videos.find(v => v.id === contentId);
+      const video = videos.find(v => String(v.id) === String(contentId));
       if (video) {
         console.log(`Found video: ${video.title}`);
-        navigate(`/video/${contentId}`);
+        navigate(`/quiz/${contentId}`);
         return;
       }
       
       // Check if content is a training item
-      const trainingItem = trainingItems.find(t => t.id === contentId);
+      const trainingItem = trainingItems.find(t => String(t.id) === String(contentId));
       if (trainingItem) {
         console.log(`Found training item: ${trainingItem.title}`);
         navigate(`/training/${contentId}`);
