@@ -171,32 +171,22 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
   };
 
   const isTrainerAvailable = (trainer) => {
-    console.log('Checking availability for trainer:', trainer.name);
-    console.log('Trainer availability schedule:', trainer.availability);
-    console.log('Selected date:', formData.startDate);
-    console.log('Selected start time:', formData.startTime);
-    console.log('Selected end time:', formData.endTime);
-
     // If no date is selected, show all trainers as available
     if (!formData.startDate) {
-      console.log('No date selected, marking trainer as available');
       return true;
     }
 
     // Check if trainer has availability schedule
     if (!trainer.availability) {
-      console.log('Trainer has no availability schedule, marking as available');
       return true;
     }
 
     const selectedDate = new Date(formData.startDate);
     const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
     const dayAvailability = trainer.availability[dayOfWeek];
-    console.log('Day of week:', dayOfWeek, 'Availability:', dayAvailability);
 
     // If day is not available, trainer is not available
     if (!dayAvailability || !dayAvailability.available) {
-      console.log('Trainer not available on this day');
       return false;
     }
 
@@ -207,11 +197,8 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
       const trainerStart = dayAvailability.startTime || '09:00';
       const trainerEnd = dayAvailability.endTime || '17:00';
 
-      console.log('Time check - Selected:', selectedStart, '-', selectedEnd, 'Trainer:', trainerStart, '-', trainerEnd);
-
       // Check if selected time is within trainer's availability
       if (selectedStart < trainerStart || selectedEnd > trainerEnd) {
-        console.log('Selected time outside trainer availability');
         return false;
       }
     }
@@ -219,14 +206,6 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     // Check if trainer is already booked at this date/time
     const trainingSchedules = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
     const trainingSchedulesArray = Array.isArray(trainingSchedules) ? trainingSchedules : [];
-
-    console.log('Checking for conflicting trainings on date:', formData.startDate);
-    const dateTrainings = trainingSchedulesArray.filter(t => 
-      t.trainerId === trainer.id &&
-      t.id !== trainingData?.id &&
-      t.startDate === formData.startDate
-    );
-    console.log('Trainings for this trainer on this date:', dateTrainings.map(t => ({ title: t.title, startTime: t.startTime, endTime: t.endTime, status: t.status })));
 
     const conflictingTraining = trainingSchedulesArray.find(t => 
       t.trainerId === trainer.id &&
@@ -241,7 +220,6 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
       !isTrainingTimePassed(t)
     );
 
-    console.log('Conflicting training found:', conflictingTraining ? conflictingTraining.title : 'none');
     return !conflictingTraining;
   };
 
