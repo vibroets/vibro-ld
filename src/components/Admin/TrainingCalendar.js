@@ -27,13 +27,13 @@ const TrainingCalendar = () => {
     try {
       const storedTrainings = await DataManager.getTrainingSchedules();
       console.log('Loaded from DataManager:', storedTrainings);
-      setTrainings(storedTrainings);
+      setTrainings(Array.isArray(storedTrainings) ? storedTrainings : []);
     } catch (error) {
       console.error('Error loading trainings:', error);
       // Fallback to localStorage
       const storedTrainings = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
       console.log('Loaded from localStorage:', storedTrainings);
-      setTrainings(storedTrainings);
+      setTrainings(Array.isArray(storedTrainings) ? storedTrainings : []);
     }
   };
 

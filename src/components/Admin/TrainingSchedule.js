@@ -86,12 +86,16 @@ const TrainingSchedule = ({ isOpen, onClose, mode, trainingData, onSave }) => {
     const storedVenues = JSON.parse(localStorage.getItem('venues') || '[]');
     const storedCategories = JSON.parse(localStorage.getItem('trainingCategories') || '[]');
     const storedTrainingTypes = JSON.parse(localStorage.getItem('trainingTypes') || '[]');
-    
-    // Load L&T content
-    const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-    const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-    const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-    
+
+    // Load L&T content with array guards
+    const quizzesData = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    const videosData = JSON.parse(localStorage.getItem('videos') || '[]');
+    const trainingItemsData = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+
+    const quizzes = Array.isArray(quizzesData) ? quizzesData : [];
+    const videos = Array.isArray(videosData) ? videosData : [];
+    const trainingItems = Array.isArray(trainingItemsData) ? trainingItemsData : [];
+
     // Combine all L&T content into a single array
     const allLtContent = [
       ...quizzes.map(q => ({ ...q, contentType: 'quiz' })),
