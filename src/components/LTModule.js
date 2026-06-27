@@ -942,6 +942,7 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
 
       localStorage.setItem('trainingItems', JSON.stringify(updatedTrainingItems));
       setTrainingItems(updatedTrainingItems);
+      DataManager.saveTrainingSchedule(normalizedTrainingData).catch(e => console.error('Supabase training sync error:', e));
       clearDraft('training', editingTraining ? editingTraining.id : 'new');
       resetTrainingForm();
       alert(`Training asset ${editingTraining ? 'updated' : 'created'} successfully!`);
