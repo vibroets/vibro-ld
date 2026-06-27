@@ -186,20 +186,30 @@ const Dashboard = () => {
       const allUsers = JSON.parse(localStorage.getItem('users') || '[]');
       const allUsersArr = Array.isArray(allUsers) ? allUsers : [];
       for (const u of allUsersArr) {
-        const ok = await upsertRow('users', {
-          id: u.id,
-          name: u.name,
-          email: u.email,
-          phone: u.phone,
-          password: u.password || '',
-          designation: u.designation || '',
-          is_admin: u.isAdmin || false,
-          is_super_admin: u.isSuperAdmin || false,
-          module_access: u.moduleAccess || {},
-          created_at: u.createdAt || new Date().toISOString(),
-          updated_at: u.updatedAt || new Date().toISOString()
-        });
-        ok ? pushed++ : errors++;
+        try {
+          const { error } = await supabase.from('users').upsert({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            phone: u.phone,
+            password: u.password || '',
+            designation: u.designation || '',
+            is_admin: u.isAdmin || false,
+            is_super_admin: u.isSuperAdmin || false,
+            module_access: u.moduleAccess || {},
+            created_at: u.createdAt || new Date().toISOString(),
+            updated_at: u.updatedAt || new Date().toISOString()
+          }, { onConflict: 'id' });
+          if (error) {
+            console.error('User sync error:', u.name, error.message);
+            errors++;
+          } else {
+            pushed++;
+          }
+        } catch(e) {
+          console.error('User sync exception:', u.name, e.message);
+          errors++;
+        }
       }
 
       // Skip quizzes sync — quizzes table not found in schema
