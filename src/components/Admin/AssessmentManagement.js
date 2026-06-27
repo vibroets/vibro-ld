@@ -25,13 +25,18 @@ const AssessmentManagement = () => {
   }, []);
 
   const loadData = () => {
-    const storedAssessments = JSON.parse(localStorage.getItem('assessments') || '[]');
-    
-    // Load L&T content from Quiz, Video, and Training libraries
-    const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-    const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-    const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-    
+    const storedAssessmentsRaw = JSON.parse(localStorage.getItem('assessments') || '[]');
+    const storedAssessments = Array.isArray(storedAssessmentsRaw) ? storedAssessmentsRaw : [];
+
+    // Load L&T content from Quiz, Video, and Training libraries with array guards
+    const quizzesRaw = JSON.parse(localStorage.getItem('quizzes') || '[]');
+    const videosRaw = JSON.parse(localStorage.getItem('videos') || '[]');
+    const trainingItemsRaw = JSON.parse(localStorage.getItem('trainingItems') || '[]');
+
+    const quizzes = Array.isArray(quizzesRaw) ? quizzesRaw : [];
+    const videos = Array.isArray(videosRaw) ? videosRaw : [];
+    const trainingItems = Array.isArray(trainingItemsRaw) ? trainingItemsRaw : [];
+
     // Combine all L&T content into a single array with type labels
     const allLtContent = [
       ...quizzes.map(q => ({ ...q, contentType: 'quiz', libraryName: 'Quiz Library' })),
