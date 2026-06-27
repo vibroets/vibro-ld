@@ -126,6 +126,8 @@ const LTModule = () => {
     setQuizzes(Array.isArray(quizzesData) ? quizzesData : []);
 
     const videosData = JSON.parse(localStorage.getItem('videos') || '[]');
+    console.log('Videos loaded from localStorage:', videosData);
+    console.log('Videos array length:', videosData?.length || 0);
     setVideos(Array.isArray(videosData) ? videosData : []);
 
     const trainingItemsData = JSON.parse(localStorage.getItem('trainingItems') || '[]');
@@ -399,6 +401,8 @@ const LTModule = () => {
           }
 
           localStorage.setItem('videos', JSON.stringify(updatedVideos));
+          console.log('Video saved to localStorage:', videoData);
+          console.log('All videos in localStorage after save:', updatedVideos);
           setVideos(updatedVideos);
           DataManager.saveVideo(videoData).catch(e => console.error('Supabase video sync error:', e));
 
