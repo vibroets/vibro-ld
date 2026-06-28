@@ -86,8 +86,11 @@ const UserQuiz = () => {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [showVideo, setShowVideo] = useState(false);
   const [videoCompleted, setVideoCompleted] = useState(false);
+  // eslint-disable-next-line no-unused-vars
   const [videoProgress, setVideoProgress] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [maxWatchedPosition, setMaxWatchedPosition] = useState(0);
+  // eslint-disable-next-line no-unused-vars
   const [warningMessage, setWarningMessage] = useState('');
   const [shuffledQuestions, setShuffledQuestions] = useState([]);
   const [user, setUser] = useState(null);
