@@ -3,12 +3,15 @@ import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen, BarChart3, LogOut, Home, Cloud, Upload } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { pushLocalDataToCloud, isFirebaseConfigured } from '../services/dataSync';
+import { migrateVideosFromIndexedDB } from '../services/supabaseService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncStatus, setSyncStatus] = useState('');
+  const [migrating, setMigrating] = useState(false);
+  const [migrationStatus, setMigrationStatus] = useState('');
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalQuizzes: 0,
@@ -241,6 +244,23 @@ const Dashboard = () => {
     setTimeout(() => setSyncStatus(''), 6000);
   };
 
+  const handleVideoMigration = async () => {
+    setMigrating(true);
+    setMigrationStatus('Migrating videos from IndexedDB to Supabase Storage...');
+    try {
+      const results = await migrateVideosFromIndexedDB();
+      setMigrationStatus(`Migrated ${results.success.length}/${results.total} videos to Supabase Storage`);
+      if (results.failed.length > 0) {
+        setMigrationStatus(prev => prev + ` (${results.failed.length} failed)`);
+      }
+      setTimeout(() => setMigrationStatus(''), 5000);
+    } catch (error) {
+      setMigrationStatus('Migration failed: ' + error.message);
+      setTimeout(() => setMigrationStatus(''), 5000);
+    }
+    setMigrating(false);
+  };
+
   
   const currentUser = JSON.parse(localStorage.getItem('currentAdmin') || 'null');
   
@@ -462,9 +482,22 @@ const Dashboard = () => {
                 {syncing ? 'Syncing...' : 'Sync to Cloud'}
               </button>
             )}
+            <button
+              onClick={handleVideoMigration}
+              disabled={migrating}
+              className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-200 text-sm font-medium disabled:opacity-50"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {migrating ? 'Migrating...' : 'Migrate Videos'}
+            </button>
             {syncStatus && (
               <span className={`text-sm font-medium ${syncStatus.includes('failed') || syncStatus.includes('errors') ? 'text-red-600' : 'text-green-600'}`}>
                 {syncStatus}
+              </span>
+            )}
+            {migrationStatus && (
+              <span className={`text-sm font-medium ${migrationStatus.includes('failed') ? 'text-red-600' : 'text-green-600'}`}>
+                {migrationStatus}
               </span>
             )}
           </div>

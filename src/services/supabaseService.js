@@ -22,6 +22,72 @@ export const uploadVideoFile = async (file, videoId) => {
   return publicUrlData.publicUrl;
 };
 
+// Migration: Upload existing IndexedDB videos to Supabase Storage
+export const migrateVideosFromIndexedDB = async () => {
+  const results = {
+    success: [],
+    failed: [],
+    total: 0
+  };
+
+  try {
+    // Open IndexedDB
+    const request = indexedDB.open('VideoTrainingDB', 5);
+    
+    const db = await new Promise((resolve, reject) => {
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+
+    // Check if videos store exists
+    if (!db.objectStoreNames.contains('videos')) {
+      console.log('No videos store in IndexedDB');
+      return results;
+    }
+
+    // Get all videos from IndexedDB
+    const transaction = db.transaction(['videos'], 'readonly');
+    const store = transaction.objectStore('videos');
+    const getAllRequest = store.getAll();
+
+    const videos = await new Promise((resolve, reject) => {
+      getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+      getAllRequest.onerror = () => reject(getAllRequest.error);
+    });
+
+    results.total = videos.length;
+    console.log(`Found ${videos.length} videos in IndexedDB`);
+
+    // Upload each video to Supabase Storage
+    for (const video of videos) {
+      if (video.file) {
+        try {
+          const fileUrl = await uploadVideoFile(video.file, video.id);
+          results.success.push({
+            id: video.id,
+            url: fileUrl,
+            name: video.file.name
+          });
+          console.log(`Migrated video ${video.id}: ${fileUrl}`);
+        } catch (error) {
+          results.failed.push({
+            id: video.id,
+            error: error.message
+          });
+          console.error(`Failed to migrate video ${video.id}:`, error);
+        }
+      }
+    }
+
+    db.close();
+  } catch (error) {
+    console.error('Migration error:', error);
+    throw error;
+  }
+
+  return results;
+};
+
 // Users
 export const getUsers = async () => {
   const { data, error } = await supabase.from('users').select('*');
