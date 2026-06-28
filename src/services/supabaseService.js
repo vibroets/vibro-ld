@@ -77,11 +77,21 @@ export const migrateVideosFromIndexedDB = async () => {
           console.log(`Migrated video ${video.id}: ${fileUrl}`);
 
           // Update video in localStorage to use Supabase URL
+          // Only update if the video is currently using IndexedDB URL
           const videoIndex = videosArr.findIndex(v => v.id === video.id);
           if (videoIndex !== -1) {
-            videosArr[videoIndex].videoUrl = fileUrl;
-            videosArr[videoIndex].fileUrl = fileUrl;
-            updatedVideos = true;
+            const localVideo = videosArr[videoIndex];
+            // Only update if this was an IndexedDB video (has indexeddb:// URL or file property)
+            if (localVideo.videoUrl && localVideo.videoUrl.startsWith('indexeddb://')) {
+              videosArr[videoIndex].videoUrl = fileUrl;
+              videosArr[videoIndex].fileUrl = fileUrl;
+              updatedVideos = true;
+            } else if (!localVideo.videoUrl && localVideo.file) {
+              // Also update if it has file but no URL
+              videosArr[videoIndex].videoUrl = fileUrl;
+              videosArr[videoIndex].fileUrl = fileUrl;
+              updatedVideos = true;
+            }
           }
         } catch (error) {
           results.failed.push({
