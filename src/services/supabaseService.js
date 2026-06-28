@@ -58,7 +58,11 @@ export const migrateVideosFromIndexedDB = async () => {
     results.total = videos.length;
     console.log(`Found ${videos.length} videos in IndexedDB`);
 
-    // Upload each video to Supabase Storage
+    // Upload each video to Supabase Storage and update localStorage
+    const videosRaw = JSON.parse(localStorage.getItem('videos') || '[]');
+    const videosArr = Array.isArray(videosRaw) ? videosRaw : [];
+    let updatedVideos = false;
+
     for (const video of videos) {
       if (video.file) {
         try {
@@ -69,6 +73,14 @@ export const migrateVideosFromIndexedDB = async () => {
             name: video.file.name
           });
           console.log(`Migrated video ${video.id}: ${fileUrl}`);
+
+          // Update video in localStorage to use Supabase URL
+          const videoIndex = videosArr.findIndex(v => v.id === video.id);
+          if (videoIndex !== -1) {
+            videosArr[videoIndex].videoUrl = fileUrl;
+            videosArr[videoIndex].fileUrl = fileUrl;
+            updatedVideos = true;
+          }
         } catch (error) {
           results.failed.push({
             id: video.id,
@@ -77,6 +89,12 @@ export const migrateVideosFromIndexedDB = async () => {
           console.error(`Failed to migrate video ${video.id}:`, error);
         }
       }
+    }
+
+    // Save updated videos to localStorage
+    if (updatedVideos) {
+      localStorage.setItem('videos', JSON.stringify(videosArr));
+      console.log('Updated video metadata in localStorage');
     }
 
     db.close();
