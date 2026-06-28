@@ -110,8 +110,15 @@ const UserQuiz = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
+    const [lastVideoUrl, setLastVideoUrl] = useState(null);
 
     useEffect(() => {
+      // Prevent infinite loop by checking if videoUrl actually changed
+      if (videoUrl === lastVideoUrl) {
+        return;
+      }
+      setLastVideoUrl(videoUrl);
+      
       let timeoutId;
       
       console.log('VideoPlayer useEffect called with videoUrl:', videoUrl);
