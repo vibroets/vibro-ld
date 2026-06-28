@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar, Users, CheckCircle, XCircle, TrendingUp, Award, Clock, 
-  MapPin, Download 
+  MapPin, Download, X 
 } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import { 
@@ -28,6 +28,7 @@ const Analytics = () => {
   const [drillDownData, setDrillDownData] = useState([]);
   const [drillDownTitle, setDrillDownTitle] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
+  const [activeFilter, setActiveFilter] = useState(null); // { type: 'user' | 'training', id: string, name: string }
 
   const loadAnalytics = useCallback(() => {
     // Load data with array guards
@@ -54,11 +55,35 @@ const Analytics = () => {
 
     const trainers = [...users.filter(u => u.role === 'trainer'), ...admins.filter(a => a.role === 'trainer')];
 
+    // Apply active filter
+    let filteredTrainings = trainingSchedules;
+    let filteredAttendances = attendances;
+    let filteredQuizResults = quizResults;
+    let filteredEnrollments = enrollments;
+
+    if (activeFilter) {
+      if (activeFilter.type === 'user') {
+        // Filter by user
+        filteredAttendances = attendances.filter(a => a.userId === activeFilter.id);
+        filteredQuizResults = quizResults.filter(q => q.userId === activeFilter.id);
+        filteredEnrollments = enrollments.filter(e => e.userId === activeFilter.id);
+        // Get trainings that this user attended or enrolled in
+        const userTrainingIds = new Set([...filteredAttendances.map(a => a.trainingId), ...filteredEnrollments.map(e => e.trainingId)]);
+        filteredTrainings = trainingSchedules.filter(t => userTrainingIds.has(t.id));
+      } else if (activeFilter.type === 'training') {
+        // Filter by training
+        filteredTrainings = trainingSchedules.filter(t => t.id === activeFilter.id);
+        filteredAttendances = attendances.filter(a => a.trainingId === activeFilter.id);
+        filteredQuizResults = quizResults.filter(q => q.trainingId === activeFilter.id);
+        filteredEnrollments = enrollments.filter(e => e.trainingId === activeFilter.id);
+      }
+    }
+
     // Filter by time
-    const filteredTrainings = filterByTime(trainingSchedules, timeFilter);
-    const filteredAttendances = filterByTime(attendances, timeFilter);
-    const filteredQuizResults = filterByTime(quizResults, timeFilter);
-    const filteredEnrollments = filterByTime(enrollments, timeFilter);
+    filteredTrainings = filterByTime(filteredTrainings, timeFilter);
+    filteredAttendances = filterByTime(filteredAttendances, timeFilter);
+    filteredQuizResults = filterByTime(filteredQuizResults, timeFilter);
+    filteredEnrollments = filterByTime(filteredEnrollments, timeFilter);
 
     // Calculate total trainings
     const totalTrainings = filteredTrainings.length;
@@ -133,7 +158,7 @@ const Analytics = () => {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
     setRecentTrainings(sortedTrainings);
-  }, [timeFilter]);
+  }, [timeFilter, activeFilter]);
 
   useEffect(() => {
     loadAnalytics();
@@ -190,7 +215,8 @@ const Analytics = () => {
           venue: t.venue,
           trainer: t.trainer,
           status: t.status,
-          participants: t.participants?.length || 0
+          participants: t.participants?.length || 0,
+          trainingId: t.id
         }));
       
       case 'totalAttendees':
@@ -200,6 +226,7 @@ const Analytics = () => {
           return {
             userName: user?.name || 'Unknown',
             userEmail: user?.email || 'Unknown',
+            userId: a.userId,
             trainingTitle: training?.title || 'Unknown',
             date: a.attendedAt,
             status: a.status
@@ -215,6 +242,7 @@ const Analytics = () => {
           return {
             userName: user?.name || 'Unknown',
             userEmail: user?.email || 'Unknown',
+            userId: e.userId,
             trainingTitle: training?.title || 'Unknown',
             date: training?.startDate,
             status: 'Not Attended'
@@ -226,6 +254,7 @@ const Analytics = () => {
           return {
             userName: user?.name || 'Unknown',
             userEmail: user?.email || 'Unknown',
+            userId: a.userId,
             trainingTitle: training?.title || 'Unknown',
             date: a.attendedAt,
             status: 'Attended'
@@ -238,6 +267,7 @@ const Analytics = () => {
           return {
             userName: user?.name || 'Unknown',
             userEmail: user?.email || 'Unknown',
+            userId: q.userId,
             quizTitle: q.quizTitle,
             score: q.score,
             passed: q.passed,
@@ -263,6 +293,28 @@ const Analytics = () => {
   const closeDrillDown = () => {
     setSelectedMetric(null);
     setDrillDownData([]);
+  };
+
+  const handleRowClick = (row, metric) => {
+    closeDrillDown();
+    
+    if (metric === 'totalAttendees' || metric === 'attendanceRate') {
+      // Filter by user
+      const user = JSON.parse(localStorage.getItem('users') || '[]').find(u => u.name === row.userName);
+      if (user) {
+        setActiveFilter({ type: 'user', id: user.id, name: row.userName });
+      }
+    } else if (metric === 'totalTrainings') {
+      // Filter by training
+      const training = JSON.parse(localStorage.getItem('trainingSchedules') || '[]').find(t => t.title === row.title);
+      if (training) {
+        setActiveFilter({ type: 'training', id: training.id, name: row.title });
+      }
+    }
+  };
+
+  const clearFilter = () => {
+    setActiveFilter(null);
   };
 
   // Chart data preparation
@@ -324,8 +376,16 @@ const Analytics = () => {
         <header className="bg-white shadow-sm border-b border-gray-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
+              <div className="flex items-center gap-4">
                 <h1 className="text-2xl font-bold text-gray-900">Analytics Dashboard</h1>
+                {activeFilter && (
+                  <div className="flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                    <span>Filter: {activeFilter.type === 'user' ? 'User' : 'Training'} - {activeFilter.name}</span>
+                    <button onClick={clearFilter} className="hover:text-blue-600">
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <select
@@ -620,7 +680,11 @@ const Analytics = () => {
                     </thead>
                     <tbody>
                       {drillDownData.map((row, index) => (
-                        <tr key={index} className="border-b hover:bg-gray-50">
+                        <tr 
+                          key={index} 
+                          className="border-b hover:bg-blue-50 cursor-pointer transition"
+                          onClick={() => handleRowClick(row, selectedMetric)}
+                        >
                           {Object.values(row).map((value, cellIndex) => (
                             <td key={cellIndex} className="py-3 px-3 text-sm text-gray-600">
                               {value}
