@@ -25,6 +25,67 @@ const Dashboard = () => {
       navigate('/login');
     }
     
+    // Auto-sync from Supabase on load to ensure data consistency
+    const autoSyncFromSupabase = async () => {
+      try {
+        const { supabase } = await import('../supabaseConfig');
+        
+        // Pull videos
+        const { data: videosData } = await supabase.from('videos').select('*');
+        if (videosData && videosData.length > 0) {
+          const videos = videosData.map(v => ({
+            id: v.id,
+            title: v.title,
+            description: v.description || '',
+            videoUrl: v.url || '',
+            fileUrl: v.file_url || v.url || '',
+            thumbnail: v.thumbnail || '',
+            duration: v.duration || '',
+            videoSourceType: v.url && v.url.startsWith('http') ? 'url' : 'file',
+            questions: v.questions || [],
+            questionsPerUser: v.questions_per_user || 10,
+            timeLimit: v.time_limit || 30,
+            passPercentage: v.pass_percentage || 70,
+            certificateEnabled: v.certificate_enabled ?? true,
+            certificateValidityValue: v.certificate_validity_value || 1,
+            certificateValidityUnit: v.certificate_validity_unit || 'year',
+            accessMode: v.access_mode || 'permanent',
+            reassignOnFail: v.reassign_on_fail ?? false,
+            rescheduleDays: v.reschedule_days || 7,
+            selectedUsers: v.selected_users || []
+          }));
+          localStorage.setItem('videos', JSON.stringify(videos));
+          console.log('Auto-synced videos from Supabase');
+        }
+
+        // Pull quizzes
+        const { data: quizzesData } = await supabase.from('quizzes').select('*');
+        if (quizzesData && quizzesData.length > 0) {
+          const quizzes = quizzesData.map(q => ({
+            id: q.id,
+            title: q.title,
+            description: q.description || '',
+            questions: q.questions || [],
+            questionsPerUser: q.questions_per_user || 10,
+            timeLimit: q.time_limit || 30,
+            passPercentage: q.pass_percentage || 70,
+            certificateEnabled: q.certificate_enabled ?? true,
+            certificateValidityValue: q.certificate_validity_value || 1,
+            certificateValidityUnit: q.certificate_validity_unit || 'year',
+            accessMode: q.access_mode || 'permanent',
+            reassignOnFail: q.reassign_on_fail ?? false,
+            rescheduleDays: q.reschedule_days || 7,
+            selectedUsers: q.selected_users || []
+          }));
+          localStorage.setItem('quizzes', JSON.stringify(quizzes));
+        }
+      } catch (error) {
+        console.error('Auto-sync error:', error);
+      }
+    };
+
+    autoSyncFromSupabase();
+    
     // Load initial stats from localStorage
     const usersRaw = JSON.parse(localStorage.getItem('users') || '[]');
     const quizzesRaw = JSON.parse(localStorage.getItem('quizzes') || '[]');
