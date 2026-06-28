@@ -16,6 +16,22 @@ import {
 } from '../../services/quizHelpers';
 import { translateBatch } from '../../services/translationService';
 
+// Load YouTube Player API
+const loadYouTubeAPI = () => {
+  return new Promise((resolve) => {
+    if (window.YT) {
+      resolve(window.YT);
+      return;
+    }
+    const tag = document.createElement('script');
+    tag.src = 'https://www.youtube.com/iframe_api';
+    tag.onload = () => {
+      window.YT.ready(() => resolve(window.YT));
+    };
+    document.body.appendChild(tag);
+  });
+};
+
 const UserQuiz = () => {
   const { quizId } = useParams();
   const navigate = useNavigate();
@@ -150,6 +166,7 @@ const UserQuiz = () => {
     const lastBlobUrlRef = useRef(null);
     const isLoadingRef = useRef(false);
     const hasLoadedRef = useRef(false);
+    const youTubePlayerRef = useRef(null);
 
     // Detect mobile device
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
@@ -253,7 +270,7 @@ const UserQuiz = () => {
             setLoading(false);
           });
       } else if (videoUrl && (videoUrl.includes('youtube.com/watch') || videoUrl.includes('youtu.be/'))) {
-        // Handle YouTube URLs - convert to embed format
+        // Handle YouTube URLs - use YouTube Player API for completion detection
         let videoId;
         if (videoUrl.includes('youtube.com/watch')) {
           videoId = videoUrl.split('v=')[1]?.split('&')[0];
@@ -262,9 +279,30 @@ const UserQuiz = () => {
         }
         console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0`;
-          setSrc(embedUrl);
+          setSrc(videoId);
           setIsYouTube(true);
+          // Load YouTube API and initialize player
+          loadYouTubeAPI().then(YT => {
+            if (youTubePlayerRef.current) {
+              youTubePlayerRef.current.destroy();
+            }
+            youTubePlayerRef.current = new YT.Player('youtube-player', {
+              videoId: videoId,
+              playerVars: {
+                controls: 1,
+                modestbranding: 1,
+                rel: 0,
+                autoplay: 0
+              },
+              events: {
+                onStateChange: (event) => {
+                  if (event.data === YT.PlayerState.ENDED && onVideoComplete) {
+                    onVideoComplete();
+                  }
+                }
+              }
+            });
+          });
           setLoading(false);
         } else {
           console.error('Invalid YouTube URL:', videoUrl);
@@ -330,7 +368,12 @@ const UserQuiz = () => {
           {!isPlaying ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10">
               <button
-                onClick={() => setIsPlaying(true)}
+                onClick={() => {
+                  setIsPlaying(true);
+                  if (youTubePlayerRef.current) {
+                    youTubePlayerRef.current.playVideo();
+                  }
+                }}
                 className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
               >
                 <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -341,14 +384,7 @@ const UserQuiz = () => {
               <p className="text-gray-400 mt-2 text-xs">Fast-forward is locked</p>
             </div>
           ) : (
-            <iframe
-              className="w-full h-full rounded"
-              src={`${src}&autoplay=1`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <div id="youtube-player" className="w-full h-full rounded" />
           )}
           <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
             Fast-forward locked
