@@ -5,7 +5,7 @@ export const uploadVideoFile = async (file, videoId) => {
   const fileName = `${videoId}_${file.name}`;
   const filePath = `videos/${fileName}`;
   
-  const { data, error } = await supabase.storage
+  const { error } = await supabase.storage
     .from('videos')
     .upload(filePath, file, {
       cacheControl: '3600',
