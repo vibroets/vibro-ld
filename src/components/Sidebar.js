@@ -16,7 +16,6 @@ import {
   CheckCircle,
   Bell,
   UserCheck,
-  FileText,
   Link as LinkIcon
 } from 'lucide-react';
 
