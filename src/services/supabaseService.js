@@ -98,6 +98,14 @@ export const saveTrainingSchedule = async (training) => {
   const supabaseData = {
     id: training.id,
     title: training.title,
+    start_time: training.startTime || null,
+    end_time: training.endTime || null,
+    venue: training.venue || null,
+    trainer: training.trainer || null,
+    participants: training.participants || null,
+    description: training.description || null,
+    start_date: training.startDate || null,
+    end_date: training.endDate || null,
     data: training,
     created_at: training.createdAt || new Date().toISOString(),
     updated_at: training.updatedAt || new Date().toISOString()
@@ -107,7 +115,20 @@ export const saveTrainingSchedule = async (training) => {
     .upsert(supabaseData, { onConflict: 'id' });
   if (error) {
     // Fallback: try without data column (schema may not have it yet)
-    const basicData = { id: training.id, title: training.title, created_at: training.createdAt || new Date().toISOString(), updated_at: training.updatedAt || new Date().toISOString() };
+    const basicData = { 
+      id: training.id, 
+      title: training.title,
+      start_time: training.startTime || null,
+      end_time: training.endTime || null,
+      venue: training.venue || null,
+      trainer: training.trainer || null,
+      participants: training.participants || null,
+      description: training.description || null,
+      start_date: training.startDate || null,
+      end_date: training.endDate || null,
+      created_at: training.createdAt || new Date().toISOString(), 
+      updated_at: training.updatedAt || new Date().toISOString() 
+    };
     const { data: data2, error: error2 } = await supabase
       .from('training_schedules')
       .upsert(basicData, { onConflict: 'id' });
@@ -122,6 +143,14 @@ export const saveAllTrainingSchedules = async (trainings) => {
   const rows = trainings.map(t => ({
     id: t.id,
     title: t.title,
+    start_time: t.startTime || null,
+    end_time: t.endTime || null,
+    venue: t.venue || null,
+    trainer: t.trainer || null,
+    participants: t.participants || null,
+    description: t.description || null,
+    start_date: t.startDate || null,
+    end_date: t.endDate || null,
     data: t,
     created_at: t.createdAt || new Date().toISOString(),
     updated_at: t.updatedAt || new Date().toISOString()
@@ -131,7 +160,20 @@ export const saveAllTrainingSchedules = async (trainings) => {
     .upsert(rows, { onConflict: 'id' });
   if (error) {
     // Fallback: try without data column
-    const basicRows = trainings.map(t => ({ id: t.id, title: t.title, created_at: t.createdAt || new Date().toISOString(), updated_at: t.updatedAt || new Date().toISOString() }));
+    const basicRows = trainings.map(t => ({ 
+      id: t.id, 
+      title: t.title,
+      start_time: t.startTime || null,
+      end_time: t.endTime || null,
+      venue: t.venue || null,
+      trainer: t.trainer || null,
+      participants: t.participants || null,
+      description: t.description || null,
+      start_date: t.startDate || null,
+      end_date: t.endDate || null,
+      created_at: t.createdAt || new Date().toISOString(), 
+      updated_at: t.updatedAt || new Date().toISOString() 
+    }));
     const { data: data2, error: error2 } = await supabase
       .from('training_schedules')
       .upsert(basicRows, { onConflict: 'id' });
