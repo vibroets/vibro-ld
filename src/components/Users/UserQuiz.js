@@ -110,15 +110,57 @@ const UserQuiz = () => {
   // Use imported helpers for question preparation, scoring, and branching.
 
   // Video component to handle different video sources
-  const VideoPlayer = React.memo(({ videoUrl }) => {
+  const VideoPlayer = React.memo(({ videoUrl, onVideoComplete, onVideoProgress, videoRef: externalVideoRef }) => {
     const [src, setSrc] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [videoProgress, setVideoProgress] = useState(0);
+    const [maxWatchedPosition, setMaxWatchedPosition] = useState(0);
+    const [warningMessage, setWarningMessage] = useState('');
+    const internalVideoRef = useRef(null);
+    const videoRef = externalVideoRef || internalVideoRef;
     const lastVideoUrlRef = useRef(null);
     const lastBlobUrlRef = useRef(null);
     const isLoadingRef = useRef(false);
+    const hasLoadedRef = useRef(false);
+
+    // Internal video event handlers to prevent parent re-renders
+    const handleTimeUpdate = () => {
+      if (videoRef.current) {
+        const currentTime = videoRef.current.currentTime;
+        const duration = videoRef.current.duration;
+        const progress = (currentTime / duration) * 100;
+        setVideoProgress(progress);
+
+        if (currentTime > maxWatchedPosition) {
+          setMaxWatchedPosition(currentTime);
+        }
+
+        if (progress >= 100 && onVideoComplete) {
+          onVideoComplete();
+        }
+      }
+    };
+
+    const handleSeeking = (e) => {
+      e.preventDefault();
+      if (videoRef.current) {
+        const currentTime = videoRef.current.currentTime;
+        if (currentTime > maxWatchedPosition) {
+          videoRef.current.currentTime = maxWatchedPosition;
+          setWarningMessage('Fast-forwarding is disabled. Please watch the entire video.');
+          setTimeout(() => setWarningMessage(''), 3000);
+        }
+      }
+    };
+
+    const handleEnded = () => {
+      if (onVideoComplete) {
+        onVideoComplete();
+      }
+    };
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -128,8 +170,8 @@ const UserQuiz = () => {
         currentVideoId = videoUrl; // Use the indexeddb:// ID for comparison
       }
       
-      // Return early if same video and already loaded or loading
-      if (currentVideoId === lastVideoUrlRef.current && (src || isLoadingRef.current)) {
+      // Return early if same video and already loaded
+      if (currentVideoId === lastVideoUrlRef.current && hasLoadedRef.current) {
         return;
       }
       
@@ -139,6 +181,7 @@ const UserQuiz = () => {
       }
       
       lastVideoUrlRef.current = currentVideoId;
+      hasLoadedRef.current = true;
       
       let timeoutId;
       
@@ -296,20 +339,10 @@ const UserQuiz = () => {
           <video
             ref={videoRef}
             className="w-full h-full object-contain bg-black"
-            onSeeking={handleVideoSeeking}
-            onTimeUpdate={handleVideoTimeUpdate}
-            onEnded={() => {
-              setVideoCompleted(true);
-              if (!trainingConfirmationRequired) {
-                setQuizStarted(true);
-              }
-            }}
-            onError={() => {
-              setVideoCompleted(true);
-              if (!trainingConfirmationRequired) {
-                setQuizStarted(true);
-              }
-            }}
+            onSeeking={handleSeeking}
+            onTimeUpdate={handleTimeUpdate}
+            onEnded={handleEnded}
+            onError={handleEnded}
             controlsList="nodownload"
             controls
             src={src}
@@ -1278,7 +1311,16 @@ const UserQuiz = () => {
               <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Training Video</h2>
               
               {/* Video Display */}
-              <VideoPlayer videoUrl={quizData.videoUrl} />
+              <VideoPlayer 
+                videoUrl={quizData.videoUrl} 
+                onVideoComplete={() => {
+                  setVideoCompleted(true);
+                  if (!trainingConfirmationRequired) {
+                    setQuizStarted(true);
+                  }
+                }}
+                videoRef={videoRef}
+              />
 
               {/* Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
