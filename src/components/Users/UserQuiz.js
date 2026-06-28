@@ -421,6 +421,9 @@ const UserQuiz = () => {
       console.log('Video has file:', !!foundVideo.file);
       console.log('Full video object:', JSON.stringify(foundVideo, null, 2));
       
+      // Alert for debugging
+      alert(`DEBUG: Video found\nTitle: ${foundVideo.title}\nvideoSourceType: ${foundVideo.videoSourceType}\nreferenceType: ${foundVideo.referenceType}\nHas videoUrl: ${!!foundVideo.videoUrl}\nvideoUrl value: ${foundVideo.videoUrl || 'null'}`);
+      
       if (foundVideo.videoSourceType === 'url' && foundVideo.videoUrl) {
         // URL-based video
         videoUrl = foundVideo.videoUrl;
