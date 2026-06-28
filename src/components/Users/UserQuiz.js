@@ -113,42 +113,55 @@ const UserQuiz = () => {
     useEffect(() => {
       let timeoutId;
       
+      console.log('VideoPlayer useEffect called with videoUrl:', videoUrl);
+      
       if (videoUrl && videoUrl.startsWith('indexeddb://')) {
         // Retrieve video from IndexedDB with timeout
         const videoId = videoUrl.replace('indexeddb://', '');
-// Add timeout to prevent hanging
+        console.log('Loading video from IndexedDB with ID:', videoId);
+        
         const timeoutPromise = new Promise((_, reject) => {
           timeoutId = setTimeout(() => {
+            console.error('Video loading timeout after 5 seconds');
             reject(new Error('Video loading timeout - please try again'));
           }, 5000); // 5 second timeout
         });
         
         Promise.race([getVideoFromIndexedDB(videoId), timeoutPromise])
           .then(blobUrl => {
+            console.log('Video loaded successfully from IndexedDB:', blobUrl);
             clearTimeout(timeoutId);
             setSrc(blobUrl);
             setLoading(false);
           })
           .catch(error => {
+            console.error('Failed to load video from IndexedDB:', error);
             clearTimeout(timeoutId);
-            setError('Failed to load video - please refresh the page');
+            setError('Failed to load video from IndexedDB - please refresh the page or re-upload the video');
             setLoading(false);
           });
       } else if (videoUrl && videoUrl.includes('youtube.com/watch')) {
         // Handle YouTube URLs - convert to embed format
         const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+        console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
           const embedUrl = `https://www.youtube.com/embed/${videoId}`;
           setSrc(embedUrl);
           setIsYouTube(true);
           setLoading(false);
         } else {
+          console.error('Invalid YouTube URL:', videoUrl);
           setError('Invalid YouTube URL');
           setLoading(false);
         }
-      } else {
+      } else if (videoUrl) {
         // Use direct videoUrl
+        console.log('Loading video from direct URL:', videoUrl);
         setSrc(videoUrl);
+        setLoading(false);
+      } else {
+        console.error('No videoUrl provided');
+        setError('No video URL provided');
         setLoading(false);
       }
       
@@ -393,7 +406,22 @@ const UserQuiz = () => {
       }
     } else if (foundVideo) {
       // This is a video training
-      setQuizData(foundVideo);
+      // Construct videoUrl from video data
+      let videoUrl = null;
+      if (foundVideo.referenceType === 'url' && foundVideo.url) {
+        videoUrl = foundVideo.url;
+      } else if (foundVideo.file || foundVideo.referenceType === 'direct') {
+        videoUrl = `indexeddb://${foundVideo.id}`;
+      } else if (foundVideo.url) {
+        videoUrl = foundVideo.url;
+      }
+      
+      // Add videoUrl to the video object
+      const videoWithUrl = { ...foundVideo, videoUrl };
+      console.log('Video data:', videoWithUrl);
+      console.log('Constructed videoUrl:', videoUrl);
+      
+      setQuizData(videoWithUrl);
       setShowVideo(true);
       setQuizStarted(false);
       setVideoCompleted(false);
