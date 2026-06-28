@@ -18,6 +18,7 @@ const UserTrainingCalendar = () => {
   const [attendanceStatus, setAttendanceStatus] = useState({});
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [selectedDateResults, setSelectedDateResults] = useState(null);
+  const [activeTab, setActiveTab] = useState('today'); // 'today', 'upcoming', 'calendar'
 
   const loadCurrentUser = useCallback(() => {
     const userData = localStorage.getItem('currentUser');
@@ -449,58 +450,184 @@ const UserTrainingCalendar = () => {
   const today = new Date();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
-      <Sidebar currentUser={currentUser} />
-      <div className="flex-1 ml-0 md:ml-64">
-        {/* Header */}
-        <header className="bg-white/80 backdrop-blur-lg shadow-lg border-b border-gray-200/50 sticky top-0 z-10">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={() => navigate('/user-dashboard')}
-                  className="p-2 hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md"
-                  aria-label="Go back"
-                >
-                  <ChevronLeft className="w-5 h-5 text-gray-700" />
-                </button>
-                <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-2 rounded-xl shadow-lg">
-                  <Calendar className="w-5 h-5 text-white" />
-                </div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-900 bg-clip-text text-transparent">My Training Calendar</h1>
-              </div>
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Mobile Header */}
+      <div className="sticky top-0 z-20 bg-white/90 backdrop-blur-lg shadow-lg border-b border-gray-200/50">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between">
+            <button
+              onClick={() => navigate('/user-dashboard')}
+              className="p-2 hover:bg-gray-100 rounded-xl transition"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-700" />
+            </button>
+            <h1 className="text-lg font-bold text-gray-900">My Trainings</h1>
+            <div className="w-10"></div>
           </div>
-        </header>
+        </div>
+        
+        {/* Tab Navigation */}
+        <div className="px-4 pb-3">
+          <div className="flex gap-2 bg-gray-100 p-1 rounded-xl">
+            <button
+              onClick={() => setActiveTab('today')}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${
+                activeTab === 'today' 
+                  ? 'bg-white text-blue-600 shadow-md' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Today
+            </button>
+            <button
+              onClick={() => setActiveTab('upcoming')}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${
+                activeTab === 'upcoming' 
+                  ? 'bg-white text-blue-600 shadow-md' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Upcoming
+            </button>
+            <button
+              onClick={() => setActiveTab('calendar')}
+              className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all ${
+                activeTab === 'calendar' 
+                  ? 'bg-white text-blue-600 shadow-md' 
+                  : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              Calendar
+            </button>
+          </div>
+        </div>
+      </div>
 
-        <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Calendar Navigation */}
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 p-6 mb-6">
-            <div className="flex items-center justify-between mb-6">
+      {/* Content */}
+      <div className="px-4 py-4 pb-20">
+        {activeTab === 'today' && (
+          <div className="space-y-3">
+            {getTrainingsForDate(today).length > 0 ? (
+              getTrainingsForDate(today).map((training, index) => {
+                const status = attendanceStatus[training.id];
+                const isCheckedIn = status === 'present';
+                
+                return (
+                  <div key={index} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTrainingColor(training.trainingType)}`}>
+                        <Calendar className="w-5 h-5 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-gray-900 truncate">{training.title}</h4>
+                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{training.startTime} - {training.endTime}</span>
+                        </div>
+                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span className="truncate">{training.venue || training.location}</span>
+                        </div>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {isCheckedIn ? (
+                          <button
+                            onClick={() => handleAttendTraining(training)}
+                            className="px-3 py-2 bg-green-500 text-white rounded-xl text-xs font-semibold flex items-center gap-1"
+                          >
+                            <Play className="w-3 h-3" />
+                            Start
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleCheckIn(training)}
+                            className="px-3 py-2 bg-blue-500 text-white rounded-xl text-xs font-semibold"
+                          >
+                            Check In
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleShowQrCode(training)}
+                          className="px-3 py-2 bg-gray-100 text-gray-700 rounded-xl text-xs font-semibold"
+                        >
+                          <QrCode className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="text-center py-12">
+                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-600 font-medium">No trainings today</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'upcoming' && (
+          <div className="space-y-3">
+            {trainings
+              .filter(t => new Date(t.startDate) > today)
+              .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+              .map((training, index) => (
+                <div key={index} className="bg-white rounded-2xl p-4 shadow-md border border-gray-100">
+                  <div className="flex items-start gap-3">
+                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${getTrainingColor(training.trainingType)}`}>
+                      <Calendar className="w-5 h-5 text-white" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-bold text-gray-900 truncate">{training.title}</h4>
+                      <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>{new Date(training.startDate).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center gap-2 mt-1 text-sm text-gray-600">
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{training.startTime} - {training.endTime}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            {trainings.filter(t => new Date(t.startDate) > today).length === 0 && (
+              <div className="text-center py-12">
+                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-3" />
+                <p className="text-gray-600 font-medium">No upcoming trainings</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'calendar' && (
+          <div className="bg-white rounded-2xl p-4 shadow-md border border-gray-100">
+            <div className="flex items-center justify-between mb-4">
               <button
                 onClick={() => navigateMonth(-1)}
-                className="p-3 hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md group"
+                className="p-2 hover:bg-gray-100 rounded-lg"
               >
-                <ChevronLeft className="w-5 h-5 text-gray-700 group-hover:text-blue-600 transition-colors" />
+                <ChevronLeft className="w-5 h-5 text-gray-700" />
               </button>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h2 className="text-lg font-bold text-gray-900">
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
               </h2>
               <button
                 onClick={() => navigateMonth(1)}
-                className="p-3 hover:bg-gradient-to-r hover:from-blue-100 hover:to-indigo-100 rounded-xl transition-all duration-300 shadow-sm hover:shadow-md group"
+                className="p-2 hover:bg-gray-100 rounded-lg"
               >
-                <ChevronRight className="w-5 h-5 text-gray-700 group-hover:text-blue-600 transition-colors" />
+                <ChevronRight className="w-5 h-5 text-gray-700" />
               </button>
             </div>
 
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-2">
-              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-                <div key={day} className="text-center text-sm font-bold text-gray-500 py-3 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg">
+            <div className="grid grid-cols-7 gap-1 mb-2">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                <div key={day} className="text-center text-xs font-bold text-gray-500 py-2">
                   {day}
                 </div>
               ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
               {days.map((day, index) => {
                 const dayTrainings = day.date ? getTrainingsForDate(day.date) : [];
                 const isToday = day.date && day.date.toDateString() === today.toDateString();
@@ -508,228 +635,79 @@ const UserTrainingCalendar = () => {
                 return (
                   <div
                     key={index}
-                    className={`min-h-28 p-3 rounded-xl border-2 transition-all duration-300 ${
-                      day.isPadding ? 'border-transparent bg-gray-50/50' : 
-                      isToday ? 'border-blue-500 bg-gradient-to-br from-blue-50 to-indigo-50 shadow-md' : 
-                      'border-gray-200 bg-white hover:border-blue-300 hover:shadow-lg hover:bg-gradient-to-br hover:from-blue-50/30 hover:to-indigo-50/30'
-                    } cursor-pointer`}
+                    className={`aspect-square flex flex-col items-center justify-center rounded-lg text-sm cursor-pointer transition ${
+                      day.isPadding ? 'bg-gray-50' : 
+                      isToday ? 'bg-blue-500 text-white font-bold' : 
+                      'hover:bg-gray-100'
+                    }`}
                     onClick={() => day.date && handleShowScores(day.date)}
                   >
-                    {day.date && (
-                      <>
-                        <div className={`text-base font-bold ${
-                          isToday ? 'text-blue-600' : 'text-gray-800'
-                        }`}>
-                          {day.date.getDate()}
-                        </div>
-                        <div className="mt-2 space-y-1.5">
-                          {dayTrainings.slice(0, 2).map((training, idx) => (
-                            <div
-                              key={idx}
-                              className={`w-3 h-3 rounded-full shadow-sm ${getTrainingColor(training.trainingType)} ring-2 ring-white`}
-                              title={training.title}
-                            />
-                          ))}
-                          {dayTrainings.length > 2 && (
-                            <div className="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">
-                              +{dayTrainings.length - 2}
-                            </div>
-                          )}
-                        </div>
-                      </>
+                    <span>{day.date ? day.date.getDate() : ''}</span>
+                    {dayTrainings.length > 0 && (
+                      <div className={`w-1.5 h-1.5 rounded-full mt-0.5 ${isToday ? 'bg-white' : getTrainingColor(dayTrainings[0].trainingType)}`} />
                     )}
                   </div>
                 );
               })}
             </div>
           </div>
-
-          {/* Today's Trainings */}
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 p-6 mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-2 rounded-xl shadow-md">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-900 bg-clip-text text-transparent">Today's Trainings</h3>
-            </div>
-            {getTrainingsForDate(today).length > 0 ? (
-              <div className="space-y-4">
-                {getTrainingsForDate(today).map((training, index) => {
-                  const status = attendanceStatus[training.id];
-                  const isCheckedIn = status === 'present';
-                  
-                  return (
-                    <div key={index} className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:border-blue-300">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className={`w-3 h-3 rounded-full shadow-md ${getTrainingColor(training.trainingType)} ring-2 ring-white`}></div>
-                            <h4 className="font-bold text-gray-900 text-lg">{training.title}</h4>
-                            {isCheckedIn && (
-                              <div className="bg-green-100 px-3 py-1 rounded-full flex items-center gap-1">
-                                <CheckCircle className="w-4 h-4 text-green-600" />
-                                <span className="text-sm font-semibold text-green-700">Checked In</span>
-                              </div>
-                            )}
-                          </div>
-                          <div className="space-y-2 text-sm text-gray-600">
-                            <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
-                              <Clock className="w-4 h-4 text-blue-600" />
-                              <span className="font-medium text-blue-900">{training.startTime} - {training.endTime}</span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
-                              <MapPin className="w-4 h-4 text-purple-600" />
-                              <span className="font-medium text-purple-900">{training.venue || training.location}</span>
-                            </div>
-                          </div>
-                        </div>
-                        <div className="flex gap-2 ml-4 flex-shrink-0">
-                          {!isCheckedIn && (
-                            <button
-                              onClick={() => handleCheckIn(training)}
-                              className="px-5 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
-                            >
-                              Check In
-                            </button>
-                          )}
-                          {isCheckedIn && (
-                            <button
-                              onClick={() => handleAttendTraining(training)}
-                              className="px-5 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold flex items-center gap-2"
-                            >
-                              <Play className="w-4 h-4" />
-                              Attend Training
-                            </button>
-                          )}
-                          <button
-                            onClick={() => handleShowQrCode(training)}
-                            className="px-4 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-300 shadow-md hover:shadow-lg"
-                          >
-                            <QrCode className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-dashed border-gray-300">
-                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">No trainings scheduled for today.</p>
-                <p className="text-xs text-gray-400 mt-2 max-w-md mx-auto">Trainings only appear here if: (1) you are enrolled as a participant, (2) the training is approved, and (3) the training date/time has not expired.</p>
-              </div>
-            )}
-          </div>
-
-          {/* Upcoming Trainings */}
-          <div className="bg-white/90 backdrop-blur-lg rounded-2xl shadow-xl border border-gray-200/50 p-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="bg-gradient-to-r from-orange-500 to-amber-500 p-2 rounded-xl shadow-md">
-                <Calendar className="w-5 h-5 text-white" />
-              </div>
-              <h3 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-900 bg-clip-text text-transparent">Upcoming Trainings</h3>
-            </div>
-            {trainings
-              .filter(t => new Date(t.startDate) > today)
-              .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-              .slice(0, 5)
-              .length > 0 ? (
-              <div className="space-y-4">
-                {trainings
-                  .filter(t => new Date(t.startDate) > today)
-                  .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-                  .slice(0, 5)
-                  .map((training, index) => (
-                    <div key={index} className="bg-gradient-to-br from-white to-gray-50 border-2 border-gray-200 rounded-2xl p-5 shadow-md hover:shadow-xl transition-all duration-300 hover:border-orange-300">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <div className={`w-3 h-3 rounded-full shadow-md ${getTrainingColor(training.trainingType)} ring-2 ring-white`}></div>
-                            <h4 className="font-bold text-gray-900 text-lg">{training.title}</h4>
-                          </div>
-                          <div className="space-y-2 text-sm text-gray-600">
-                            <div className="flex items-center gap-2 bg-blue-50 px-3 py-2 rounded-lg">
-                              <Calendar className="w-4 h-4 text-blue-600" />
-                              <span className="font-medium text-blue-900">{new Date(training.startDate).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-purple-50 px-3 py-2 rounded-lg">
-                              <Clock className="w-4 h-4 text-purple-600" />
-                              <span className="font-medium text-purple-900">{training.startTime} - {training.endTime}</span>
-                            </div>
-                            <div className="flex items-center gap-2 bg-green-50 px-3 py-2 rounded-lg">
-                              <MapPin className="w-4 h-4 text-green-600" />
-                              <span className="font-medium text-green-900">{training.venue || training.location}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            ) : (
-              <div className="text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border-2 border-dashed border-gray-300">
-                <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-600 font-medium">No upcoming trainings</p>
-              </div>
-            )}
-          </div>
-        </main>
+        )}
       </div>
 
       {/* Check-in Modal */}
       {showCheckInModal && selectedTraining && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-200">
-            <div className="flex items-center gap-3 mb-6">
-              <div className="bg-gradient-to-r from-blue-600 to-indigo-600 p-3 rounded-xl shadow-lg">
-                <CheckCircle className="w-6 h-6 text-white" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl p-6 w-full max-w-lg animate-slide-up">
+            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="bg-blue-500 p-2 rounded-xl">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
-              <h3 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-900 bg-clip-text text-transparent">Check In for Training</h3>
+              <h3 className="text-lg font-bold text-gray-900">Check In</h3>
             </div>
-            <div className="mb-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100">
-              <p className="font-bold text-gray-900 text-lg">{selectedTraining.title}</p>
-              <p className="text-sm text-gray-600 mt-1">{selectedTraining.venue || selectedTraining.location}</p>
+            <div className="mb-4 bg-gray-50 rounded-xl p-3">
+              <p className="font-bold text-gray-900">{selectedTraining.title}</p>
+              <p className="text-sm text-gray-600">{selectedTraining.venue || selectedTraining.location}</p>
             </div>
             
             {checkInSuccess ? (
-              <div className="text-center py-8">
-                <div className="bg-gradient-to-r from-green-500 to-emerald-500 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <CheckCircle className="w-10 h-10 text-white" />
+              <div className="text-center py-6">
+                <div className="bg-green-500 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle className="w-8 h-8 text-white" />
                 </div>
-                <p className="text-xl font-bold text-gray-900 mb-2">Check-in Successful!</p>
-                <p className="text-sm text-gray-600">Your attendance has been marked.</p>
+                <p className="text-lg font-bold text-gray-900">Success!</p>
+                <p className="text-sm text-gray-600">Attendance marked</p>
               </div>
             ) : (
               <>
-                <div className="mb-6">
+                <div className="mb-4">
                   <button
                     onClick={handleGetLocation}
-                    className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-blue-500 text-white rounded-xl font-semibold"
                   >
                     <LocationIcon className="w-5 h-5" />
-                    {location ? 'Location Captured ✓' : 'Get Current Location'}
+                    {location ? 'Location Captured ✓' : 'Get Location'}
                   </button>
                   {location && (
-                    <p className="text-xs text-gray-500 mt-3 bg-green-50 px-4 py-2 rounded-lg text-center">
-                      <span className="font-semibold text-green-700">Location:</span> {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
+                    <p className="text-xs text-gray-500 mt-2 text-center">
+                      {location.latitude.toFixed(4)}, {location.longitude.toFixed(4)}
                     </p>
                   )}
                   {locationError && (
-                    <p className="text-sm text-red-600 mt-3 bg-red-50 px-4 py-2 rounded-lg text-center">{locationError}</p>
+                    <p className="text-sm text-red-600 mt-2 text-center">{locationError}</p>
                   )}
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                   <button
                     onClick={() => setShowCheckInModal(false)}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 rounded-xl hover:from-gray-200 hover:to-gray-300 transition-all duration-300 font-semibold"
+                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-xl font-semibold"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleConfirmCheckIn}
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-300 shadow-lg hover:shadow-xl font-semibold"
+                    className="flex-1 px-4 py-3 bg-green-500 text-white rounded-xl font-semibold"
                   >
                     Confirm
                   </button>
@@ -742,41 +720,42 @@ const UserTrainingCalendar = () => {
 
       {/* QR Code Modal */}
       {showQrModal && selectedTraining && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl p-8 max-w-md w-full shadow-2xl border border-gray-200">
-            <div className="flex justify-between items-center mb-6">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl p-6 w-full max-w-lg animate-slide-up">
+            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
+            <div className="flex justify-between items-center mb-4">
               <div className="flex items-center gap-3">
-                <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 rounded-xl shadow-lg">
-                  <QrCode className="w-6 h-6 text-white" />
+                <div className="bg-purple-500 p-2 rounded-xl">
+                  <QrCode className="w-5 h-5 text-white" />
                 </div>
-                <h3 className="text-xl font-bold bg-gradient-to-r from-gray-800 to-gray-900 bg-clip-text text-transparent">Training QR Code</h3>
+                <h3 className="text-lg font-bold text-gray-900">QR Code</h3>
               </div>
               <button
                 onClick={() => setShowQrModal(false)}
-                className="p-2 hover:bg-gray-100 rounded-xl transition-all duration-300"
+                className="p-2 hover:bg-gray-100 rounded-xl"
               >
-                <svg className="w-6 h-6 text-gray-500 hover:text-gray-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             
-            <div className="mb-6 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl p-4 border border-purple-100">
-              <p className="font-bold text-gray-900 text-lg">{selectedTraining.title}</p>
-              <p className="text-sm text-gray-600 mt-1">{selectedTraining.venue || selectedTraining.location}</p>
+            <div className="mb-4 bg-gray-50 rounded-xl p-3">
+              <p className="font-bold text-gray-900">{selectedTraining.title}</p>
+              <p className="text-sm text-gray-600">{selectedTraining.venue || selectedTraining.location}</p>
             </div>
             
-            <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl p-8 flex items-center justify-center border-2 border-dashed border-gray-300">
+            <div className="bg-gray-100 rounded-2xl p-6 flex items-center justify-center">
               <div className="text-center">
                 <div className="bg-white p-4 rounded-xl shadow-lg inline-block">
                   <QrCode className="w-32 h-32 text-gray-800" />
                 </div>
-                <p className="text-xs text-gray-500 mt-3 font-mono bg-white px-3 py-1 rounded-full inline-block">ID: {selectedTraining.id}</p>
+                <p className="text-xs text-gray-500 mt-2">ID: {selectedTraining.id}</p>
               </div>
             </div>
             
-            <p className="text-sm text-gray-600 mt-6 text-center bg-blue-50 px-4 py-3 rounded-xl">
-              Show this QR code to the trainer to verify your attendance
+            <p className="text-sm text-gray-600 mt-4 text-center">
+              Show this to the trainer
             </p>
           </div>
         </div>
@@ -784,47 +763,51 @@ const UserTrainingCalendar = () => {
 
       {/* Score Modal */}
       {showScoreModal && selectedDateResults && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[80vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-end justify-center z-50">
+          <div className="bg-white rounded-t-3xl p-6 w-full max-w-lg max-h-[80vh] overflow-y-auto">
+            <div className="w-12 h-1 bg-gray-300 rounded-full mx-auto mb-4"></div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Quiz Results</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-amber-500 p-2 rounded-xl">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Quiz Results</h3>
+              </div>
               <button
                 onClick={() => setShowScoreModal(false)}
-                className="text-gray-400 hover:text-gray-600"
+                className="p-2 hover:bg-gray-100 rounded-xl"
               >
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-3">
               {selectedDateResults.map((result, index) => {
                 const percentage = Math.round((result.correctAnswers / result.totalQuestions) * 100);
                 return (
-                  <div key={index} className="border border-gray-200 rounded-lg p-4">
+                  <div key={index} className="bg-gray-50 rounded-xl p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-semibold text-gray-900">{result.quizTitle}</h4>
-                      <div className={`text-2xl font-bold ${percentage >= 70 ? 'text-green-600' : 'text-red-600'}`}>
+                      <h4 className="font-bold text-gray-900">{result.quizTitle}</h4>
+                      <div className={`px-3 py-1 rounded-full text-sm font-bold ${
+                        percentage >= 70 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                      }`}>
                         {percentage}%
                       </div>
                     </div>
-                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-                    <div>
-                      <span className="font-medium">Correct Answers:</span> {result.correctAnswers}/{result.totalQuestions}
-                    </div>
-                    <div>
-                      <span className="font-medium">Time Taken:</span> {Math.floor(result.timeTaken / 60)}m {result.timeTaken % 60}s
-                    </div>
-                    <div>
-                      <span className="font-medium">Completed:</span> {new Date(result.completedAt).toLocaleString()}
-                    </div>
-                    <div>
-                      <span className="font-medium">Training Type:</span> {result.trainingType}
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div className="bg-white p-2 rounded-lg">
+                        <span className="text-gray-500 block text-xs">Correct</span>
+                        <span className="font-semibold text-gray-900">{result.correctAnswers}/{result.totalQuestions}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded-lg">
+                        <span className="text-gray-500 block text-xs">Time</span>
+                        <span className="font-semibold text-gray-900">{Math.floor(result.timeTaken / 60)}m {result.timeTaken % 60}s</span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
+                );
               })}
             </div>
           </div>
