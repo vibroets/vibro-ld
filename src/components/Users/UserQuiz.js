@@ -120,10 +120,16 @@ const UserQuiz = () => {
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
-      if (videoUrl === lastVideoUrlRef.current) {
+      // For IndexedDB videos, compare the ID instead of the full URL (blob URL changes each time)
+      let currentVideoId = videoUrl;
+      if (videoUrl && videoUrl.startsWith('indexeddb://')) {
+        currentVideoId = videoUrl; // Use the indexeddb:// ID for comparison
+      }
+      
+      if (currentVideoId === lastVideoUrlRef.current) {
         return;
       }
-      lastVideoUrlRef.current = videoUrl;
+      lastVideoUrlRef.current = currentVideoId;
       
       let timeoutId;
       
