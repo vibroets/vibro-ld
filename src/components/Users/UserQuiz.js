@@ -590,7 +590,7 @@ const UserQuiz = () => {
       alert('An error occurred while loading the training content. Please try again or contact your administrator.');
       navigate('/user-dashboard');
     }
-  }, [quizId, navigate, location.search, trainingConfirmationRequired, user]);
+  }, [quizId, navigate, trainingConfirmationRequired, user]);
 
   useEffect(() => {
     if (!quizData || !reviewResultId || !user) return;
