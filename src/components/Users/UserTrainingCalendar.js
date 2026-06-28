@@ -497,59 +497,109 @@ const UserTrainingCalendar = () => {
           </div>
         </div>
 
-        <div className="px-4 py-4 md:px-6 md:py-6 pb-20 md:pb-6">
-          {/* Calendar */}
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 md:p-6 mb-4">
-            <div className="grid grid-cols-7 gap-1 md:gap-2 mb-1">
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                <div key={day} className="text-center text-xs md:text-sm font-medium text-gray-400 py-1 md:py-2">
-                  {day}
-                </div>
-              ))}
+        <div className="px-3 py-3 md:px-6 md:py-6 pb-20 md:pb-6 overflow-x-hidden">
+          {/* Calendar - Horizontal Scroll on Mobile */}
+          <div className="mb-4 md:mb-6">
+            <div className="flex items-center justify-between mb-2">
+              <button
+                onClick={() => navigateMonth(-1)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition flex-shrink-0"
+              >
+                <ChevronLeft className="w-4 h-4 text-gray-700" />
+              </button>
+              <h2 className="text-sm md:text-xl font-semibold text-gray-900">
+                {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
+              </h2>
+              <button
+                onClick={() => navigateMonth(1)}
+                className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-gray-100 transition flex-shrink-0"
+              >
+                <ChevronRight className="w-4 h-4 text-gray-700" />
+              </button>
             </div>
-            <div className="grid grid-cols-7 gap-1 md:gap-2">
-              {days.map((day, index) => {
-                const dayTrainings = day.date ? getTrainingsForDate(day.date) : [];
-                const isToday = day.date && day.date.toDateString() === today.toDateString();
-                
-                return (
-                  <div
-                    key={index}
-                    className={`aspect-square md:aspect-auto md:min-h-24 flex flex-col items-center justify-center rounded-full md:rounded-lg text-xs md:text-sm cursor-pointer transition ${
-                      day.isPadding ? '' : 
-                      isToday ? 'bg-blue-600 text-white font-semibold shadow-lg shadow-blue-200' : 
-                      dayTrainings.length > 0 ? 'bg-blue-50 text-blue-600 font-medium hover:bg-blue-100' : 
-                      'hover:bg-gray-50'
-                    }`}
-                    onClick={() => day.date && handleShowScores(day.date)}
-                  >
-                    <span>{day.date ? day.date.getDate() : ''}</span>
+            
+            <div className="md:hidden overflow-x-auto -mx-3 px-3">
+              <div className="flex gap-1 min-w-max">
+                {days.map((day, index) => {
+                  const dayTrainings = day.date ? getTrainingsForDate(day.date) : [];
+                  const isToday = day.date && day.date.toDateString() === today.toDateString();
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`w-12 h-16 flex flex-col items-center justify-center rounded-xl text-xs cursor-pointer transition flex-shrink-0 ${
+                        day.isPadding ? 'opacity-30' : 
+                        isToday ? 'bg-blue-600 text-white font-semibold' : 
+                        dayTrainings.length > 0 ? 'bg-blue-50 text-blue-600 font-medium' : 
+                        'bg-white border border-gray-200'
+                      }`}
+                      onClick={() => day.date && handleShowScores(day.date)}
+                    >
+                      <span className="text-xs mb-1">{day.date ? day.date.getDate() : ''}</span>
+                      {dayTrainings.length > 0 && (
+                        <div className={`w-1.5 h-1.5 rounded-full ${isToday ? 'bg-white' : 'bg-blue-600'}`} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Desktop Calendar Grid */}
+            <div className="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="grid grid-cols-7 gap-2 mb-2">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                  <div key={day} className="text-center text-sm font-medium text-gray-400 py-2">
+                    {day}
                   </div>
-                );
-              })}
+                ))}
+              </div>
+              <div className="grid grid-cols-7 gap-2">
+                {days.map((day, index) => {
+                  const dayTrainings = day.date ? getTrainingsForDate(day.date) : [];
+                  const isToday = day.date && day.date.toDateString() === today.toDateString();
+                  
+                  return (
+                    <div
+                      key={index}
+                      className={`aspect-square md:min-h-24 flex flex-col items-center justify-center rounded-lg text-sm cursor-pointer transition ${
+                        day.isPadding ? '' : 
+                        isToday ? 'bg-blue-600 text-white font-semibold shadow-lg shadow-blue-200' : 
+                        dayTrainings.length > 0 ? 'bg-blue-50 text-blue-600 font-medium hover:bg-blue-100' : 
+                        'hover:bg-gray-50'
+                      }`}
+                      onClick={() => day.date && handleShowScores(day.date)}
+                    >
+                      <span>{day.date ? day.date.getDate() : ''}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 
           {/* Today's Section */}
           <div className="mb-4">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Today</h3>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Today</h3>
             {getTrainingsForDate(today).length > 0 ? (
-              <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
+              <div className="space-y-2">
                 {getTrainingsForDate(today).map((training, index) => {
                   const status = attendanceStatus[training.id];
                   const isCheckedIn = status === 'present';
                   
                   return (
-                    <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 md:p-5">
-                      <div className="mb-2 md:mb-3">
-                        <h4 className="font-semibold text-gray-900 text-sm md:text-lg">{training.title}</h4>
-                        <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-1 md:mt-2 text-xs md:text-sm text-gray-500">
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3 md:w-4 md:h-4" />
-                            <span>{training.startTime} - {training.endTime}</span>
+                    <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-semibold text-gray-900 text-sm truncate">{training.title}</h4>
+                          <div className="flex items-center gap-2 mt-1 text-xs text-gray-500">
+                            <Clock className="w-3 h-3" />
+                            <span>{training.startTime}</span>
+                            <span>-</span>
+                            <span>{training.endTime}</span>
                           </div>
-                          <div className="flex items-center gap-1">
-                            <MapPin className="w-3 h-3 md:w-4 md:h-4" />
+                          <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+                            <MapPin className="w-3 h-3" />
                             <span className="truncate">{training.venue || training.location}</span>
                           </div>
                         </div>
@@ -558,24 +608,24 @@ const UserTrainingCalendar = () => {
                         {isCheckedIn ? (
                           <button
                             onClick={() => handleAttendTraining(training)}
-                            className="flex-1 py-2 md:py-3 bg-blue-600 text-white rounded-lg md:rounded-xl font-medium flex items-center justify-center gap-1 md:gap-2 text-xs md:text-sm"
+                            className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium flex items-center justify-center gap-1 text-xs"
                           >
-                            <Play className="w-3 h-3 md:w-4 md:h-4" />
+                            <Play className="w-3 h-3" />
                             Start
                           </button>
                         ) : (
                           <button
                             onClick={() => handleCheckIn(training)}
-                            className="flex-1 py-2 md:py-3 bg-blue-600 text-white rounded-lg md:rounded-xl font-medium text-xs md:text-sm"
+                            className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium text-xs"
                           >
                             Check In
                           </button>
                         )}
                         <button
                           onClick={() => handleShowQrCode(training)}
-                          className="py-2 md:py-3 px-3 md:px-4 bg-gray-100 text-gray-700 rounded-lg md:rounded-xl font-medium border border-gray-200"
+                          className="py-2 px-3 bg-gray-100 text-gray-700 rounded-lg font-medium border border-gray-200"
                         >
-                          <QrCode className="w-3 h-3 md:w-4 md:h-4" />
+                          <QrCode className="w-3 h-3" />
                         </button>
                       </div>
                     </div>
@@ -583,41 +633,37 @@ const UserTrainingCalendar = () => {
                 })}
               </div>
             ) : (
-              <div className="text-center py-6 md:py-8 bg-white rounded-xl border border-gray-200">
-                <Calendar className="w-10 h-10 md:w-12 md:h-12 text-gray-200 mx-auto mb-2" />
-                <p className="text-xs md:text-sm text-gray-400">No trainings today</p>
+              <div className="text-center py-4 bg-white rounded-lg border border-gray-200">
+                <Calendar className="w-8 h-8 text-gray-200 mx-auto mb-1" />
+                <p className="text-xs text-gray-400">No trainings today</p>
               </div>
             )}
           </div>
 
           {/* Upcoming Section */}
-          <div className="pb-4 md:pb-0">
-            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Upcoming</h3>
+          <div>
+            <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Upcoming</h3>
             {trainings
               .filter(t => new Date(t.startDate) > today)
               .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
               .length > 0 ? (
-              <div className="space-y-3 md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0">
+              <div className="space-y-2">
                 {trainings
                   .filter(t => new Date(t.startDate) > today)
                   .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
+                  .slice(0, 5)
                   .map((training, index) => (
-                    <div key={index} className="bg-white rounded-xl shadow-sm border border-gray-200 p-3 md:p-5">
-                      <div className="flex items-center gap-2 md:gap-3">
-                        <div className={`w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center flex-shrink-0 ${getTrainingColor(training.trainingType)}`}>
-                          <Calendar className="w-5 h-5 md:w-6 md:h-6 text-white" />
+                    <div key={index} className="bg-white rounded-lg shadow-sm border border-gray-200 p-3">
+                      <div className="flex items-center gap-2">
+                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${getTrainingColor(training.trainingType)}`}>
+                          <Calendar className="w-4 h-4 text-white" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-sm md:text-base truncate">{training.title}</h4>
-                          <div className="flex flex-wrap items-center gap-2 md:gap-3 mt-1 text-xs md:text-sm text-gray-500">
-                            <div className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                              <span>{new Date(training.startDate).toLocaleDateString()}</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <Clock className="w-3 h-3 md:w-3.5 md:h-3.5" />
-                              <span>{training.startTime}</span>
-                            </div>
+                          <h4 className="font-semibold text-gray-900 text-sm truncate">{training.title}</h4>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-gray-500">
+                            <span>{new Date(training.startDate).toLocaleDateString()}</span>
+                            <span>•</span>
+                            <span>{training.startTime}</span>
                           </div>
                         </div>
                       </div>
@@ -625,9 +671,9 @@ const UserTrainingCalendar = () => {
                   ))}
               </div>
             ) : (
-              <div className="text-center py-6 md:py-8 bg-white rounded-xl border border-gray-200">
-                <Calendar className="w-10 h-10 md:w-12 md:h-12 text-gray-200 mx-auto mb-2" />
-                <p className="text-xs md:text-sm text-gray-400">No upcoming trainings</p>
+              <div className="text-center py-4 bg-white rounded-lg border border-gray-200">
+                <Calendar className="w-8 h-8 text-gray-200 mx-auto mb-1" />
+                <p className="text-xs text-gray-400">No upcoming trainings</p>
               </div>
             )}
           </div>
