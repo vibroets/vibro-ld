@@ -151,6 +151,12 @@ const Analytics = () => {
       };
     }).sort((a, b) => b.trainingsAssigned - a.trainingsAssigned);
 
+    // If filtering by user, show only trainers assigned to that user's trainings
+    if (activeFilter && activeFilter.type === 'user') {
+      const userTrainerNames = new Set(filteredTrainings.map(t => t.trainer));
+      return trainerData.filter(t => userTrainerNames.has(t.name));
+    }
+
     setTrainerStats(trainerData);
 
     // Get recent trainings (last 5)
@@ -320,7 +326,14 @@ const Analytics = () => {
   // Chart data preparation
   const getAttendanceByMonth = () => {
     const attendancesRaw = JSON.parse(localStorage.getItem('attendances') || '[]');
-    const attendances = Array.isArray(attendancesRaw) ? attendancesRaw : [];
+    let attendances = Array.isArray(attendancesRaw) ? attendancesRaw : [];
+    
+    // Apply active filter
+    if (activeFilter && activeFilter.type === 'user') {
+      attendances = attendances.filter(a => a.userId === activeFilter.id);
+    } else if (activeFilter && activeFilter.type === 'training') {
+      attendances = attendances.filter(a => a.trainingId === activeFilter.id);
+    }
     
     const months = {};
     attendances.forEach(a => {
@@ -341,7 +354,23 @@ const Analytics = () => {
 
   const getTrainingStatusData = () => {
     const trainingSchedulesRaw = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
-    const trainingSchedules = Array.isArray(trainingSchedulesRaw) ? trainingSchedulesRaw : [];
+    let trainingSchedules = Array.isArray(trainingSchedulesRaw) ? trainingSchedulesRaw : [];
+    
+    // Apply active filter
+    if (activeFilter) {
+      if (activeFilter.type === 'training') {
+        trainingSchedules = trainingSchedules.filter(t => t.id === activeFilter.id);
+      } else if (activeFilter.type === 'user') {
+        // Get trainings for this user
+        const attendancesRaw = JSON.parse(localStorage.getItem('attendances') || '[]');
+        const enrollmentsRaw = JSON.parse(localStorage.getItem('enrollments') || '[]');
+        const userTrainingIds = new Set([
+          ...attendancesRaw.filter(a => a.userId === activeFilter.id).map(a => a.trainingId),
+          ...enrollmentsRaw.filter(e => e.userId === activeFilter.id).map(e => e.trainingId)
+        ]);
+        trainingSchedules = trainingSchedules.filter(t => userTrainingIds.has(t.id));
+      }
+    }
     
     const statusCounts = {};
     trainingSchedules.forEach(t => {
