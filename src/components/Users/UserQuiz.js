@@ -135,7 +135,7 @@ const UserQuiz = () => {
       }, 1000);
       
       return () => clearInterval(progressInterval);
-    }, [isPlaying, isYouTube, videoProgress, trainingConfirmationRequired]);
+    }, [isPlaying, isYouTube]); // eslint-disable-line react-hooks/exhaustive-deps
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
