@@ -1,5 +1,27 @@
 import { supabase } from '../supabaseConfig';
 
+// Video Storage - Upload to Supabase Storage
+export const uploadVideoFile = async (file, videoId) => {
+  const fileName = `${videoId}_${file.name}`;
+  const filePath = `videos/${fileName}`;
+  
+  const { data, error } = await supabase.storage
+    .from('videos')
+    .upload(filePath, file, {
+      cacheControl: '3600',
+      upsert: false
+    });
+  
+  if (error) throw error;
+  
+  // Get public URL
+  const { data: publicUrlData } = supabase.storage
+    .from('videos')
+    .getPublicUrl(filePath);
+  
+  return publicUrlData.publicUrl;
+};
+
 // Users
 export const getUsers = async () => {
   const { data, error } = await supabase.from('users').select('*');

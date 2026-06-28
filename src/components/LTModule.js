@@ -4,6 +4,7 @@ import { ArrowLeft, Plus, Video, FileText, BookOpen, Save, Trash2, Edit2, Downlo
 import Sidebar from './Sidebar';
 import { createDefaultQuestion, QUESTION_TYPES, saveDraft, loadDraft, clearDraft } from '../services/quizHelpers';
 import DataManager from '../services/dataManager';
+import { uploadVideoFile } from '../services/supabaseService';
 
 const SUPPORTED_LANGUAGES = [
   { code: 'ta', label: 'Tamil' },
@@ -333,51 +334,29 @@ const LTModule = () => {
       return;
     }
     
-    // Handle file upload with IndexedDB storage
+    // Handle file upload with Supabase Storage for cross-device access
     if (videoForm.videoSourceType === 'file' && videoForm.videoFile) {
       const videoId = editingVideo ? editingVideo.id : Date.now().toString();
       
-      // Store video file in IndexedDB
-      const storeVideoInIndexedDB = (videoFile, videoId) => {
-        return new Promise((resolve, reject) => {
-          const request = indexedDB.open('VideoTrainingDB', 5);
-          
-          request.onerror = () => reject(request.error);
-          request.onsuccess = () => {
-            const db = request.result;
-            const transaction = db.transaction(['videos'], 'readwrite');
-            const store = transaction.objectStore('videos');
-            
-            const videoData = {
-              id: videoId,
-              file: videoFile,
-              createdAt: new Date().toISOString()
-            };
-            
-            const addRequest = store.put(videoData);
-            addRequest.onsuccess = () => resolve(videoId);
-            addRequest.onerror = () => reject(addRequest.error);
-          };
-          
-          request.onupgradeneeded = () => {
-            const db = request.result;
-            if (!db.objectStoreNames.contains('videos')) {
-              db.createObjectStore('videos', { keyPath: 'id' });
-            }
-            if (!db.objectStoreNames.contains('trainingAssets')) {
-              db.createObjectStore('trainingAssets', { keyPath: 'id' });
-            }
-          };
-        });
+      // Upload video file to Supabase Storage for cross-device access
+      const uploadVideoToSupabase = async (videoFile, videoId) => {
+        try {
+          const fileUrl = await uploadVideoFile(videoFile, videoId);
+          return fileUrl;
+        } catch (error) {
+          console.error('Failed to upload video to Supabase:', error);
+          throw error;
+        }
       };
       
-      storeVideoInIndexedDB(videoForm.videoFile, videoId)
-        .then(() => {
+      uploadVideoToSupabase(videoForm.videoFile, videoId)
+        .then((fileUrl) => {
           const videoData = {
             id: videoId,
             title: videoForm.title,
             description: videoForm.description,
-            videoUrl: `indexeddb://${videoId}`, // Reference to IndexedDB
+            videoUrl: fileUrl, // Supabase Storage URL
+            fileUrl: fileUrl, // For cross-device access
             videoSourceType: 'file',
             questions: videoForm.questions,
             questionsPerUser: videoForm.questionsPerUser,
@@ -833,13 +812,12 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
       });
     }, 200);
     
-    // Simulate upload completion and store file reference
+    // Simulate upload completion - file will be uploaded to Supabase during actual submission
     setTimeout(() => {
       if (videoForm.videoFile) {
         const videoId = Date.now().toString();
         const videoData = {
           id: videoId,
-          file: videoForm.videoFile,
           name: videoForm.videoFile.name,
           size: videoForm.videoFile.size,
           type: videoForm.videoFile.type,
@@ -1295,55 +1273,51 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
   const editVideo = (video) => {
     setEditingVideo(video);
     
-    // Handle IndexedDB videos
-    if (video.videoUrl && video.videoUrl.startsWith('indexeddb://')) {
-      const videoId = video.videoUrl.replace('indexeddb://', '');
-      getVideoFromIndexedDB(videoId)
-        .then(blobUrl => {
-          setVideoForm({
-            title: video.title,
-            description: video.description,
-            videoUrl: video.videoUrl,
-            blobUrl: blobUrl,
-            videoSourceType: 'file',
-            videoFile: null,
-            questions: (video.questions || []).map(normalizeQuestion),
-            questionsPerUser: video.questionsPerUser,
-            timeLimit: video.timeLimit,
-            passPercentage: video.passPercentage || 70,
-            certificateEnabled: video.certificateEnabled ?? true,
-            certificateValidityValue: video.certificateValidityValue || 1,
-            certificateValidityUnit: video.certificateValidityUnit || 'year',
-            accessMode: video.accessMode || 'permanent',
-            reassignOnFail: video.reassignOnFail ?? false,
-            rescheduleDays: video.rescheduleDays || 7,
-            selectedUsers: video.selectedUsers || []
-          });
-          setShowVideoForm(true);
-        })
-        .catch(error => {
-          // Fallback to form without video preview
-          setVideoForm({
-            title: video.title,
-            description: video.description,
-            videoUrl: video.videoUrl,
-            blobUrl: null,
-            videoSourceType: 'file',
-            videoFile: null,
-            questions: (video.questions || []).map(normalizeQuestion),
-            questionsPerUser: video.questionsPerUser,
-            timeLimit: video.timeLimit,
-            passPercentage: video.passPercentage || 70,
-            certificateEnabled: video.certificateEnabled ?? true,
-            certificateValidityValue: video.certificateValidityValue || 1,
-            certificateValidityUnit: video.certificateValidityUnit || 'year',
-            accessMode: video.accessMode || 'permanent',
-            reassignOnFail: video.reassignOnFail ?? false,
-            rescheduleDays: video.rescheduleDays || 7,
-            selectedUsers: video.selectedUsers || []
-          });
-          setShowVideoForm(true);
-        });
+    // Handle video URLs (Supabase Storage or external)
+    if (video.videoUrl && !video.videoUrl.startsWith('indexeddb://')) {
+      // Direct URL from Supabase Storage or external source
+      setVideoForm({
+        title: video.title,
+        description: video.description,
+        videoUrl: video.videoUrl,
+        blobUrl: video.videoUrl, // Use the URL directly
+        videoSourceType: video.videoSourceType === 'file' ? 'file' : 'url',
+        videoFile: null,
+        questions: (video.questions || []).map(normalizeQuestion),
+        questionsPerUser: video.questionsPerUser,
+        timeLimit: video.timeLimit,
+        passPercentage: video.passPercentage || 70,
+        certificateEnabled: video.certificateEnabled ?? true,
+        certificateValidityValue: video.certificateValidityValue || 1,
+        certificateValidityUnit: video.certificateValidityUnit || 'year',
+        accessMode: video.accessMode || 'permanent',
+        reassignOnFail: video.reassignOnFail ?? false,
+        rescheduleDays: video.rescheduleDays || 7,
+        selectedUsers: video.selectedUsers || []
+      });
+      setShowVideoForm(true);
+    } else if (video.videoUrl && video.videoUrl.startsWith('indexeddb://')) {
+      // Legacy IndexedDB videos - show warning but allow editing
+      setVideoForm({
+        title: video.title,
+        description: video.description,
+        videoUrl: video.videoUrl,
+        blobUrl: null,
+        videoSourceType: 'file',
+        videoFile: null,
+        questions: (video.questions || []).map(normalizeQuestion),
+        questionsPerUser: video.questionsPerUser,
+        timeLimit: video.timeLimit,
+        passPercentage: video.passPercentage || 70,
+        certificateEnabled: video.certificateEnabled ?? true,
+        certificateValidityValue: video.certificateValidityValue || 1,
+        certificateValidityUnit: video.certificateValidityUnit || 'year',
+        accessMode: video.accessMode || 'permanent',
+        reassignOnFail: video.reassignOnFail ?? false,
+        rescheduleDays: video.rescheduleDays || 7,
+        selectedUsers: video.selectedUsers || []
+      });
+      setShowVideoForm(true);
     } else {
       // Handle URL videos
       setVideoForm({
