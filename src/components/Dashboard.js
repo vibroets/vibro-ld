@@ -56,6 +56,8 @@ const Dashboard = () => {
           }));
           localStorage.setItem('videos', JSON.stringify(videos));
           console.log('Auto-synced videos from Supabase');
+        } else {
+          console.log('No videos in Supabase, keeping localStorage data');
         }
 
         // Pull quizzes
@@ -78,6 +80,8 @@ const Dashboard = () => {
             selectedUsers: q.selected_users || []
           }));
           localStorage.setItem('quizzes', JSON.stringify(quizzes));
+        } else {
+          console.log('No quizzes in Supabase, keeping localStorage data');
         }
       } catch (error) {
         console.error('Auto-sync error:', error);
@@ -142,6 +146,8 @@ const Dashboard = () => {
           updatedAt: u.updated_at
         }));
         localStorage.setItem('users', JSON.stringify(users));
+      } else {
+        console.log('No users in Supabase, keeping localStorage data');
       }
 
       // Pull training schedules
@@ -162,6 +168,8 @@ const Dashboard = () => {
           updatedAt: t.updated_at
         });
         localStorage.setItem('trainingSchedules', JSON.stringify(trainings));
+      } else {
+        console.log('No training schedules in Supabase, keeping localStorage data');
       }
 
       // Pull videos
@@ -181,6 +189,8 @@ const Dashboard = () => {
           updatedAt: v.updated_at
         }));
         localStorage.setItem('videos', JSON.stringify(videos));
+      } else {
+        console.log('No videos in Supabase, keeping localStorage data');
       }
 
       setSyncStatus('✅ Restored from Supabase! Refreshing...');
@@ -197,20 +207,20 @@ const Dashboard = () => {
     let errors = 0;
     let pushed = 0;
 
-    // Fix corrupted localStorage before sync
+    // Fix corrupted localStorage before sync - but don't remove valid data
     const keysToFix = ['users', 'trainingSchedules', 'quizzes', 'videos'];
     keysToFix.forEach(key => {
       const raw = localStorage.getItem(key);
       if (raw) {
         try {
           const parsed = JSON.parse(raw);
-          if (!Array.isArray(parsed)) {
+          if (!Array.isArray(parsed) && parsed !== null) {
             console.warn(`Fixing corrupted localStorage key: ${key}`);
-            localStorage.removeItem(key); // Remove corrupted data
+            localStorage.setItem(key, '[]'); // Replace with empty array instead of removing
           }
         } catch(e) {
-          console.warn(`Removing invalid localStorage key: ${key}`);
-          localStorage.removeItem(key);
+          console.warn(`Fixing invalid localStorage key: ${key}`);
+          localStorage.setItem(key, '[]'); // Replace with empty array instead of removing
         }
       }
     });

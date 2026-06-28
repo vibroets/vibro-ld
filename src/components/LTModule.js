@@ -2789,9 +2789,22 @@ nps,"How likely are you to recommend us?",,,,,0,10`;
               /* Video Form */
               <div className="bg-white rounded-lg shadow-lg p-6">
                 <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-lg font-semibold text-gray-900">
-                    {editingVideo ? 'Edit Video' : 'Add New Video'}
-                  </h2>
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        resetVideoForm();
+                        setShowVideoForm(false);
+                      }}
+                      className="flex items-center px-3 py-1.5 text-sm bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition duration-200"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-1" />
+                      Back
+                    </button>
+                    <h2 className="text-lg font-semibold text-gray-900">
+                      {editingVideo ? 'Edit Video' : 'Add New Video'}
+                    </h2>
+                  </div>
                   <button
                     type="button"
                     onClick={handleSaveDraft}
