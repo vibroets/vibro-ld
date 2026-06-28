@@ -416,28 +416,13 @@ const UserTrainingCalendar = () => {
           return;
         }
         
-        // Content not found - show error and try next content ID
+        // Content not found - show error
         console.error(`Content ID ${contentId} not found in quizzes, videos, or trainingItems`);
         alert('Training content not found. Please contact the administrator to update the training content.');
         return;
-        
-        // Check if content is a training item
-        const trainingItem = trainingItems.find(t => String(t.id) === String(contentId));
-        if (trainingItem) {
-          console.log(`Found training item: ${trainingItem.title}`);
-          navigate(`/training/${contentId}`);
-          return;
-        }
-        
-        // Content not found - show alert with available items
-        const availableItemsList = [
-          ...quizzes.map(t => `- [Quiz] ID: ${t.id}, Title: ${t.title}`),
-          ...videos.map(t => `- [Video] ID: ${t.id}, Title: ${t.title}`),
-          ...trainingItems.map(t => `- [Training] ID: ${t.id}, Title: ${t.title}`)
-        ].join('\n');
-        alert(`Learning content with ID "${contentId}" not found for training "${training.title}".\n\nAvailable training items:\n${availableItemsList}\n\nPlease contact your administrator to update the training schedule with the correct learning content ID.`);
       } else {
-        alert('No learning content is associated with this training. Please contact your administrator.');
+        // No content IDs in training
+        alert('This training has no content assigned. Please contact the administrator.');
       }
     } catch (error) {
       console.error('Error in handleAttendTraining:', error);
