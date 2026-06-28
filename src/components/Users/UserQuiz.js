@@ -109,14 +109,14 @@ const UserQuiz = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
-    const [lastVideoUrl, setLastVideoUrl] = useState(null);
+    const lastVideoUrlRef = useRef(null);
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
-      if (videoUrl === lastVideoUrl) {
+      if (videoUrl === lastVideoUrlRef.current) {
         return;
       }
-      setLastVideoUrl(videoUrl);
+      lastVideoUrlRef.current = videoUrl;
       
       let timeoutId;
       
