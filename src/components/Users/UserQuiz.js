@@ -116,58 +116,6 @@ const UserQuiz = () => {
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
     const lastVideoUrlRef = useRef(null);
-    const youtubePlayerRef = useRef(null);
-
-    const initYouTubePlayer = (videoId) => {
-      const player = new window.YT.Player(`youtube-player-${videoId}`, {
-        height: '100%',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-          'autoplay': 1,
-          'controls': 1,
-          'modestbranding': 1,
-          'rel': 0
-        },
-        events: {
-          'onReady': (event) => {
-            console.log('YouTube player ready');
-            event.target.playVideo();
-            
-            // Track progress every second
-            const progressInterval = setInterval(() => {
-              if (event.target && event.target.getCurrentTime && event.target.getDuration) {
-                const currentTime = event.target.getCurrentTime();
-                const duration = event.target.getDuration();
-                if (duration > 0) {
-                  const progress = (currentTime / duration) * 100;
-                  setVideoProgress(Math.min(progress, 100));
-                  setMaxWatchedPosition(prev => Math.max(prev, currentTime));
-                  
-                  if (progress >= 100) {
-                    clearInterval(progressInterval);
-                    setVideoCompleted(true);
-                    if (!trainingConfirmationRequired) {
-                      setQuizStarted(true);
-                    }
-                  }
-                }
-              }
-            }, 1000);
-          },
-          'onStateChange': (event) => {
-            if (event.data === window.YT.PlayerState.ENDED) {
-              setVideoCompleted(true);
-              setVideoProgress(100);
-              if (!trainingConfirmationRequired) {
-                setQuizStarted(true);
-              }
-            }
-          }
-        }
-      });
-      youtubePlayerRef.current = player;
-    };
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -215,23 +163,9 @@ const UserQuiz = () => {
         }
         console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
-          setSrc(`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&controls=1&modestbranding=1&rel=0`);
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          setSrc(embedUrl);
           setIsYouTube(true);
-          
-          // Load YouTube Player API
-          if (!window.YT) {
-            const tag = document.createElement('script');
-            tag.src = 'https://www.youtube.com/iframe_api';
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            
-            window.onYouTubeIframeAPIReady = () => {
-              initYouTubePlayer(videoId);
-            };
-          } else {
-            setTimeout(() => initYouTubePlayer(videoId), 100);
-          }
-          
           setLoading(false);
         } else {
           console.error('Invalid YouTube URL:', videoUrl);
@@ -285,10 +219,31 @@ const UserQuiz = () => {
     }
 
     if (isYouTube) {
-      const videoId = src.split('embed/')[1]?.split('?')[0];
       return (
         <div className="w-full h-96 bg-black rounded relative">
-          <div id={`youtube-player-${videoId}`} className="w-full h-full rounded"></div>
+          <iframe
+            className="w-full h-full rounded"
+            src={src}
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            onLoad={() => {
+              // Start simple timer-based progress tracking
+              const progressInterval = setInterval(() => {
+                if (videoProgress < 100) {
+                  setVideoProgress(prev => Math.min(prev + 1, 100));
+                } else {
+                  clearInterval(progressInterval);
+                  setVideoCompleted(true);
+                  if (!trainingConfirmationRequired) {
+                    setQuizStarted(true);
+                  }
+                }
+              }, 1000);
+              return () => clearInterval(progressInterval);
+            }}
+          />
           <div className="absolute bottom-0 left-0 right-0 h-8 bg-black/80 flex items-center px-4">
             <div className="flex-1 h-2 bg-gray-700 rounded overflow-hidden mr-4">
               <div 
