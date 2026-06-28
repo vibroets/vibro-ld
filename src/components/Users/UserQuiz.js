@@ -304,12 +304,18 @@ const UserQuiz = () => {
     if (error) {
       return (
         <div className="w-full h-96 bg-red-50 rounded flex items-center justify-center">
-          <div className="text-center">
+          <div className="text-center p-4">
             <AlertCircle className="w-8 h-8 text-red-600 mx-auto mb-4" />
-            <div className="text-sm text-red-600 mb-4">{error}</div>
+            <div className="text-sm text-red-600 mb-4 font-semibold">Video Loading Error</div>
+            <div className="text-xs text-red-500 mb-2">{error}</div>
+            {isMobile && (
+              <div className="text-xs text-gray-600 mt-4 p-3 bg-yellow-50 rounded border border-yellow-200">
+                <strong>Note:</strong> Videos uploaded from drive (IndexedDB) are stored locally on your device and are not accessible across different devices. For cross-device access, please use URL-based videos (YouTube, direct links).
+              </div>
+            )}
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200"
+              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition duration-200 mt-4"
             >
               Refresh Page
             </button>
