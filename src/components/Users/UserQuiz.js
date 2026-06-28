@@ -573,8 +573,14 @@ const UserQuiz = () => {
       } else if (foundVideo.videoSourceType === 'url' && foundVideo.videoUrl) {
         // URL-based video (check videoSourceType)
         videoUrl = foundVideo.videoUrl;
+      } else if (foundVideo.fileUrl) {
+        // File-based video with Supabase URL (cross-device accessible)
+        videoUrl = foundVideo.fileUrl;
+      } else if (foundVideo.url && !foundVideo.url.startsWith('indexeddb://')) {
+        // Supabase URL (cross-device accessible)
+        videoUrl = foundVideo.url;
       } else if (foundVideo.videoSourceType === 'file' || foundVideo.file) {
-        // File-based video from IndexedDB
+        // File-based video from IndexedDB (device-specific only)
         videoUrl = `indexeddb://${foundVideo.id}`;
       } else if (foundVideo.videoUrl) {
         // Fallback: use videoUrl if available
