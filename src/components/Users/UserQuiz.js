@@ -421,18 +421,15 @@ const UserQuiz = () => {
       console.log('Video has file:', !!foundVideo.file);
       console.log('Full video object:', JSON.stringify(foundVideo, null, 2));
       
-      // Alert for debugging
-      alert(`DEBUG: Video found\nTitle: ${foundVideo.title}\nvideoSourceType: ${foundVideo.videoSourceType}\nreferenceType: ${foundVideo.referenceType}\nHas videoUrl: ${!!foundVideo.videoUrl}\nvideoUrl value: ${foundVideo.videoUrl || 'null'}`);
-      
-      if (foundVideo.videoSourceType === 'url' && foundVideo.videoUrl) {
-        // URL-based video
+      if (foundVideo.referenceType === 'url' && foundVideo.videoUrl) {
+        // URL-based video (check referenceType first)
+        videoUrl = foundVideo.videoUrl;
+      } else if (foundVideo.videoSourceType === 'url' && foundVideo.videoUrl) {
+        // URL-based video (check videoSourceType)
         videoUrl = foundVideo.videoUrl;
       } else if (foundVideo.videoSourceType === 'file' || foundVideo.file) {
         // File-based video from IndexedDB
         videoUrl = `indexeddb://${foundVideo.id}`;
-      } else if (foundVideo.referenceType === 'url' && foundVideo.videoUrl) {
-        // Fallback: check referenceType
-        videoUrl = foundVideo.videoUrl;
       } else if (foundVideo.videoUrl) {
         // Fallback: use videoUrl if available
         videoUrl = foundVideo.videoUrl;
