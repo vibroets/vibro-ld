@@ -118,6 +118,7 @@ const UserQuiz = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const lastVideoUrlRef = useRef(null);
     const lastBlobUrlRef = useRef(null);
+    const isMountedRef = useRef(false);
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -127,10 +128,11 @@ const UserQuiz = () => {
         currentVideoId = videoUrl; // Use the indexeddb:// ID for comparison
       }
       
-      if (currentVideoId === lastVideoUrlRef.current) {
+      if (currentVideoId === lastVideoUrlRef.current && isMountedRef.current) {
         return;
       }
       lastVideoUrlRef.current = currentVideoId;
+      isMountedRef.current = true;
       
       let timeoutId;
       
