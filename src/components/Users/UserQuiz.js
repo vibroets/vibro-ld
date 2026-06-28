@@ -115,6 +115,7 @@ const UserQuiz = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(false);
     const lastVideoUrlRef = useRef(null);
 
     useEffect(() => {
@@ -163,7 +164,7 @@ const UserQuiz = () => {
         }
         console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0`;
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0`;
           setSrc(embedUrl);
           setIsYouTube(true);
           setLoading(false);
@@ -221,43 +222,28 @@ const UserQuiz = () => {
     if (isYouTube) {
       return (
         <div className="w-full h-96 bg-black rounded relative">
-          <iframe
-            className="w-full h-full rounded"
-            src={src}
-            title="YouTube video player"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            onLoad={() => {
-              // Start timer-based progress tracking (1% per second = 100 seconds for full video)
-              const progressInterval = setInterval(() => {
-                if (videoProgress < 100) {
-                  setVideoProgress(prev => Math.min(prev + 1, 100));
-                } else {
-                  clearInterval(progressInterval);
-                  setVideoCompleted(true);
-                  if (!trainingConfirmationRequired) {
-                    setQuizStarted(true);
-                  }
-                }
-              }, 1000);
-              return () => clearInterval(progressInterval);
-            }}
-          />
-          <div className="absolute bottom-0 left-0 right-0 h-8 bg-black/80 flex items-center px-4">
-            <div className="flex-1 h-2 bg-gray-700 rounded overflow-hidden mr-4">
-              <div 
-                className="h-full bg-blue-500 transition-all duration-300"
-                style={{ width: `${videoProgress}%` }}
-              />
+          {!isPlaying ? (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10">
+              <button
+                onClick={() => setIsPlaying(true)}
+                className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+              >
+                <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M8 5v14l11-7z"/>
+                </svg>
+              </button>
+              <p className="text-white mt-4 text-sm">Click to play video</p>
             </div>
-            <div className="text-white text-sm font-medium">
-              {videoProgress.toFixed(0)}%
-            </div>
-          </div>
-          <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-            Fast-forward locked
-          </div>
+          ) : (
+            <iframe
+              className="w-full h-full rounded"
+              src={`${src}&autoplay=1`}
+              title="YouTube video player"
+              frameBorder="0"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          )}
         </div>
       );
     }
