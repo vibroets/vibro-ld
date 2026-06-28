@@ -412,13 +412,14 @@ const UserTrainingCalendar = () => {
           console.log(`Found video: ${video.title}`);
           console.log(`Video has file: ${!!video.file}, url: ${!!video.url}, videoUrl: ${!!video.videoUrl}, referenceType: ${video.referenceType}`);
           // Check if video has a file in IndexedDB or URL
-          if (video.file || video.url || video.videoUrl || video.referenceType === 'direct') {
-            navigate(`/quiz/${contentId}`);
-          } else {
-            alert(`Video "${video.title}" has no file associated with it. Please contact your administrator.`);
-          }
+          navigate(`/quiz/${contentId}`);
           return;
         }
+        
+        // Content not found - show error and try next content ID
+        console.error(`Content ID ${contentId} not found in quizzes, videos, or trainingItems`);
+        alert('Training content not found. Please contact the administrator to update the training content.');
+        return;
         
         // Check if content is a training item
         const trainingItem = trainingItems.find(t => String(t.id) === String(contentId));
