@@ -29,10 +29,6 @@ const Analytics = () => {
   const [drillDownTitle, setDrillDownTitle] = useState('');
   const [timeFilter, setTimeFilter] = useState('all');
 
-  useEffect(() => {
-    loadAnalytics();
-  }, [timeFilter, loadAnalytics]);
-
   const loadAnalytics = useCallback(() => {
     // Load data with array guards
     const trainingSchedulesRaw = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
@@ -138,6 +134,10 @@ const Analytics = () => {
       .slice(0, 5);
     setRecentTrainings(sortedTrainings);
   }, [timeFilter]);
+
+  useEffect(() => {
+    loadAnalytics();
+  }, [loadAnalytics]);
 
   const filterByTime = (data, filter) => {
     if (filter === 'all') return data;
