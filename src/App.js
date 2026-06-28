@@ -20,8 +20,7 @@ import ParticipantEnrollment from './components/Admin/ParticipantEnrollment';
 import ApprovalWorkflow from './components/Admin/ApprovalWorkflow';
 import NotificationSystem from './components/Admin/NotificationSystem';
 import AttendanceManagement from './components/Admin/AttendanceManagement';
-import AssessmentManagement from './components/Admin/AssessmentManagement';
-import TrainingAnalytics from './components/Admin/TrainingAnalytics';
+import Analytics from './components/Admin/Analytics';
 import CalendarIntegrations from './components/Admin/CalendarIntegrations';
 import UserTrainingCalendar from './components/Users/UserTrainingCalendar';
 import { setupAutoSync, setupUserAutoSync, setSyncStatusCallback, pullAndMergeKeyFromCloud, isFirebaseConfigured } from './services/dataSync';
@@ -166,8 +165,7 @@ function App() {
               <Route path="/approval-workflow" element={<ApprovalWorkflow />} />
               <Route path="/notification-system" element={<NotificationSystem />} />
               <Route path="/attendance-management" element={<AttendanceManagement />} />
-              <Route path="/assessment-management" element={<AssessmentManagement />} />
-              <Route path="/training-analytics" element={<TrainingAnalytics />} />
+              <Route path="/analytics" element={<Analytics />} />
               <Route path="/calendar-integrations" element={<CalendarIntegrations />} />
               <Route path="/drafts" element={<DraftsModule />} />
               <Route path="/training/:trainingId" element={<TrainingViewer />} />

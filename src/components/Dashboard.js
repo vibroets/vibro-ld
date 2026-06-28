@@ -15,8 +15,7 @@ const Dashboard = () => {
   const [stats, setStats] = useState({
     totalUsers: 0,
     totalQuizzes: 0,
-    totalVideos: 0,
-    activeAssessments: 0
+    totalVideos: 0
   });
 
   useEffect(() => {
@@ -40,8 +39,7 @@ const Dashboard = () => {
     setStats({
       totalUsers: users.length,
       totalQuizzes: quizzes.length,
-      totalVideos: videos.length,
-      activeAssessments: quizzes.filter(q => q.isActive).length
+      totalVideos: videos.length
     });
   }, [navigate]);
 
@@ -434,18 +432,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-4 sm:p-6">
-            <div className="flex items-center">
-              <div className="flex-shrink-0 bg-orange-100 rounded-lg p-2 sm:p-3">
-                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6 text-orange-600" />
-              </div>
-              <div className="ml-3 sm:ml-4">
-                <p className="text-xs sm:text-sm font-medium text-gray-600">Active Assessments</p>
-                <p className="text-xl sm:text-2xl font-semibold text-gray-900">{stats.activeAssessments}</p>
-              </div>
-            </div>
           </div>
-        </div>
 
         {/* Module Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">

@@ -126,20 +126,12 @@ const Sidebar = ({ currentUser, onCloseMobile }) => {
       moduleKey: 'approvalWorkflow'
     },
     {
-      title: 'Assessments',
-      description: 'Manage assessments',
-      icon: FileText,
-      path: '/assessment-management',
-      color: 'text-fuchsia-600',
-      moduleKey: 'assessmentManagement'
-    },
-    {
       title: 'Training Analytics',
       description: 'View training analytics',
       icon: BarChart3,
-      path: '/training-analytics',
+      path: '/analytics',
       color: 'text-pink-600',
-      moduleKey: 'trainingAnalytics'
+      moduleKey: 'analytics'
     },
     {
       title: 'Notifications',
