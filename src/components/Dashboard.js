@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Users, BookOpen, BarChart3, LogOut, Home, Cloud, Upload, RotateCcw } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { pushLocalDataToCloud, isFirebaseConfigured } from '../services/dataSync';
-import { migrateVideosFromIndexedDB, restoreVideosFromSupabase } from '../services/supabaseService';
+import { migrateVideosFromIndexedDB, restoreVideosFromSupabase, restoreAllDataFromSupabase } from '../services/supabaseService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -275,6 +275,20 @@ const Dashboard = () => {
     setMigrating(false);
   };
 
+  const handleRestoreAllData = async () => {
+    setMigrating(true);
+    setMigrationStatus('Restoring all data from Supabase...');
+    try {
+      const result = await restoreAllDataFromSupabase();
+      setMigrationStatus(`Restored: ${result.results.users} users, ${result.results.videos} videos, ${result.results.quizzes} quizzes, ${result.results.trainingSchedules} schedules`);
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      setMigrationStatus('Restore failed: ' + error.message);
+      setTimeout(() => setMigrationStatus(''), 5000);
+    }
+    setMigrating(false);
+  };
+
   
   const currentUser = JSON.parse(localStorage.getItem('currentAdmin') || 'null');
   
@@ -511,6 +525,14 @@ const Dashboard = () => {
             >
               <RotateCcw className="w-4 h-4 mr-2" />
               {migrating ? 'Restoring...' : 'Restore Videos'}
+            </button>
+            <button
+              onClick={handleRestoreAllData}
+              disabled={migrating}
+              className="flex items-center px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition duration-200 text-sm font-medium disabled:opacity-50"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              {migrating ? 'Restoring...' : 'Restore All Data'}
             </button>
             {syncStatus && (
               <span className={`text-sm font-medium ${syncStatus.includes('failed') || syncStatus.includes('errors') ? 'text-red-600' : 'text-green-600'}`}>
