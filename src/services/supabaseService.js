@@ -11,7 +11,7 @@ export const uploadVideoFile = async (file, videoId) => {
     .from('videos')
     .upload(filePath, file, {
       cacheControl: '3600',
-      upsert: false
+      upsert: true
     });
   
   if (error) throw error;
