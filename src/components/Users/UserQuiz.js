@@ -116,81 +116,6 @@ const UserQuiz = () => {
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
     const lastVideoUrlRef = useRef(null);
-    const youtubePlayerRef = useRef(null);
-    const progressIntervalRef = useRef(null);
-
-    const initYouTubePlayer = (videoId) => {
-      if (youtubePlayerRef.current) {
-        youtubePlayerRef.current.destroy();
-      }
-      
-      youtubePlayerRef.current = new window.YT.Player(`youtube-player-${videoId}`, {
-        height: '100%',
-        width: '100%',
-        videoId: videoId,
-        playerVars: {
-          'playsinline': 1,
-          'controls': 1,
-          'modestbranding': 1,
-          'rel': 0
-        },
-        events: {
-          'onReady': (event) => {
-            console.log('YouTube player ready');
-            event.target.playVideo();
-            // Start progress tracking with seeking prevention
-            progressIntervalRef.current = setInterval(() => {
-              if (event.target && event.target.getCurrentTime) {
-                const currentTime = event.target.getCurrentTime();
-                const duration = event.target.getDuration();
-                if (duration > 0) {
-                  const progress = (currentTime / duration) * 100;
-                  setVideoProgress(Math.min(progress, 100));
-                  
-                  // Prevent seeking beyond maxWatchedPosition
-                  if (currentTime > maxWatchedPosition + 1) {
-                    event.target.seekTo(maxWatchedPosition);
-                    setWarningMessage('Fast-forwarding is disabled. Please watch the video in order.');
-                    setTimeout(() => setWarningMessage(''), 3000);
-                  } else {
-                    setMaxWatchedPosition(prev => Math.max(prev, currentTime));
-                  }
-                }
-              }
-            }, 500);
-          },
-          'onStateChange': (event) => {
-            if (event.data === window.YT.PlayerState.ENDED) {
-              setVideoCompleted(true);
-              setVideoProgress(100);
-              if (progressIntervalRef.current) {
-                clearInterval(progressIntervalRef.current);
-              }
-              if (!trainingConfirmationRequired) {
-                setQuizStarted(true);
-              }
-            }
-          },
-          'onError': (event) => {
-            console.error('YouTube player error:', event.data);
-            setError('Failed to load YouTube video');
-            setLoading(false);
-          }
-        }
-      });
-    };
-
-    // Cleanup function
-    useEffect(() => {
-      return () => {
-        if (progressIntervalRef.current) {
-          clearInterval(progressIntervalRef.current);
-        }
-        if (youtubePlayerRef.current) {
-          youtubePlayerRef.current.destroy();
-        }
-      };
-    }, []);
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -238,24 +163,9 @@ const UserQuiz = () => {
         }
         console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?enablejsapi=1&controls=1&modestbranding=1&rel=0&disablekb=0`;
+          const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&controls=1&modestbranding=1&rel=0&disablekb=1`;
           setSrc(embedUrl);
           setIsYouTube(true);
-          
-          // Initialize YouTube Player API
-          if (!window.YT) {
-            const tag = document.createElement('script');
-            tag.src = 'https://www.youtube.com/iframe_api';
-            const firstScriptTag = document.getElementsByTagName('script')[0];
-            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            
-            window.onYouTubeIframeAPIReady = () => {
-              initYouTubePlayer(videoId);
-            };
-          } else {
-            initYouTubePlayer(videoId);
-          }
-          
           setLoading(false);
         } else {
           console.error('Invalid YouTube URL:', videoUrl);
@@ -309,11 +219,32 @@ const UserQuiz = () => {
     }
 
     if (isYouTube) {
-      // Render YouTube video using YouTube Player API for progress tracking
-      const videoId = src.split('embed/')[1];
+      // Render YouTube video using iframe with progress bar
       return (
         <div className="w-full h-96 bg-black rounded relative">
-          <div id={`youtube-player-${videoId}`} className="w-full h-full rounded"></div>
+          <iframe
+            className="w-full h-full rounded"
+            src={src}
+            title="YouTube video player"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            onLoad={() => {
+              // Start progress tracking
+              const progressInterval = setInterval(() => {
+                if (videoProgress < 100) {
+                  setVideoProgress(prev => Math.min(prev + 2, 100));
+                } else {
+                  clearInterval(progressInterval);
+                  setVideoCompleted(true);
+                  if (!trainingConfirmationRequired) {
+                    setQuizStarted(true);
+                  }
+                }
+              }, 1000);
+              return () => clearInterval(progressInterval);
+            }}
+          />
           <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
             <div 
               className="h-full bg-blue-500 transition-all duration-300"
