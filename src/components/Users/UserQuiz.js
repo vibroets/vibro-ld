@@ -100,6 +100,12 @@ const UserQuiz = () => {
     question: null,
     options: []
   });
+  const hasLoadedQuizRef = useRef(false);
+
+  // Reset the ref when quizId changes
+  useEffect(() => {
+    hasLoadedQuizRef.current = false;
+  }, [quizId]);
 
   // Use imported helpers for question preparation, scoring, and branching.
 
@@ -271,6 +277,11 @@ const UserQuiz = () => {
   };
 
   useEffect(() => {
+    // Prevent infinite loop by checking if we've already loaded this quiz
+    if (hasLoadedQuizRef.current === quizId) {
+      return;
+    }
+    
     try {
       const searchParams = new URLSearchParams(location.search);
       const mode = searchParams.get('mode');
@@ -362,6 +373,7 @@ const UserQuiz = () => {
       // Attach type info to quizData
       quizToUse.trainingType = foundQuiz ? trainingType : 'Training';
       setQuizData(quizToUse);
+      hasLoadedQuizRef.current = quizId;
       const timeLimitMinutes = quizToUse.timeLimit || 30;
       const timeLimitSeconds = timeLimitMinutes * 60;
       setTimeRemaining(timeLimitSeconds);
@@ -471,6 +483,7 @@ const UserQuiz = () => {
       setShowVideo(true);
       setQuizStarted(false);
       setVideoCompleted(false);
+      hasLoadedQuizRef.current = quizId;
 
       // Load saved progress from localStorage
       if (user && quizId) {
