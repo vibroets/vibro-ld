@@ -395,13 +395,6 @@ const UserQuiz = () => {
             src={src}
             autoPlay
             playsInline
-            muted={isMobile}
-            onPlay={() => {
-              // Unmute on first user interaction for mobile
-              if (videoRef.current && videoRef.current.muted) {
-                videoRef.current.muted = false;
-              }
-            }}
           >
             Your browser does not support the video tag.
           </video>
