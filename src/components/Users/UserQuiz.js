@@ -356,15 +356,30 @@ const UserQuiz = () => {
               <p className="text-gray-400 mt-2 text-xs">Fast-forward is locked</p>
             </div>
           ) : (
-            <iframe
-              ref={youTubeIframeRef}
-              className="w-full h-full rounded"
-              src={`${src}&autoplay=1`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <>
+              <iframe
+                ref={youTubeIframeRef}
+                className="w-full h-full rounded"
+                src={`${src}&autoplay=1`}
+                title="YouTube video player"
+                frameBorder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+              />
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
+                <button
+                  onClick={() => {
+                    setIsPlaying(false);
+                    if (onVideoComplete) {
+                      onVideoComplete();
+                    }
+                  }}
+                  className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-lg"
+                >
+                  Take Quiz
+                </button>
+              </div>
+            </>
           )}
           <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
             Fast-forward locked
