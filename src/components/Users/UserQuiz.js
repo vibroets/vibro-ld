@@ -117,6 +117,82 @@ const UserQuiz = () => {
     const [isYouTube, setIsYouTube] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const lastVideoUrlRef = useRef(null);
+    const playerRef = useRef(null);
+    const maxWatchedRef = useRef(0);
+    const isSeekingRef = useRef(false);
+
+    const initYouTubePlayer = (videoId) => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+      
+      if (!window.YT) {
+        console.error('YouTube API not loaded');
+        return;
+      }
+      
+      const player = new window.YT.Player(`youtube-player-${videoId}`, {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          'autoplay': 1,
+          'controls': 1,
+          'modestbranding': 1,
+          'rel': 0
+        },
+        events: {
+          'onReady': (event) => {
+            console.log('YouTube player ready');
+            playerRef.current = event.target;
+            maxWatchedRef.current = 0;
+            
+            // Track progress every second and prevent seeking
+            const progressInterval = setInterval(() => {
+              if (event.target && event.target.getCurrentTime && event.target.getDuration) {
+                const currentTime = event.target.getCurrentTime();
+                const duration = event.target.getDuration();
+                
+                if (duration > 0) {
+                  // Update max watched position
+                  if (currentTime > maxWatchedRef.current) {
+                    maxWatchedRef.current = currentTime;
+                  }
+                  
+                  // Prevent seeking beyond max watched position
+                  if (currentTime > maxWatchedRef.current + 0.5) {
+                    // User tried to seek forward, reset to max watched position
+                    event.target.seekTo(maxWatchedRef.current, true);
+                    console.log('Seeking prevented - fast-forward locked');
+                  }
+                  
+                  const progress = (currentTime / duration) * 100;
+                  setVideoProgress(Math.min(progress, 100));
+                  
+                  if (progress >= 100) {
+                    clearInterval(progressInterval);
+                    setVideoCompleted(true);
+                    if (!trainingConfirmationRequired) {
+                      setQuizStarted(true);
+                    }
+                  }
+                }
+              }
+            }, 500);
+          },
+          'onStateChange': (event) => {
+            if (event.data === window.YT.PlayerState.ENDED) {
+              setVideoCompleted(true);
+              setVideoProgress(100);
+              if (!trainingConfirmationRequired) {
+                setQuizStarted(true);
+              }
+            }
+          }
+        }
+      });
+    };
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -164,10 +240,23 @@ const UserQuiz = () => {
         }
         console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0`;
-          setSrc(embedUrl);
           setIsYouTube(true);
           setLoading(false);
+          
+          // Load YouTube Player API if not already loaded
+          if (!window.YT) {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            
+            window.onYouTubeIframeAPIReady = () => {
+              initYouTubePlayer(videoId);
+            };
+          } else {
+            // API already loaded, initialize player
+            setTimeout(() => initYouTubePlayer(videoId), 100);
+          }
         } else {
           console.error('Invalid YouTube URL:', videoUrl);
           setError('Invalid YouTube URL');
@@ -220,12 +309,33 @@ const UserQuiz = () => {
     }
 
     if (isYouTube) {
+      const videoId = videoUrl.includes('youtube.com/watch') 
+        ? videoUrl.split('v=')[1]?.split('&')[0]
+        : videoUrl.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0];
+      
       return (
         <div className="w-full h-96 bg-black rounded relative">
           {!isPlaying ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10">
               <button
-                onClick={() => setIsPlaying(true)}
+                onClick={() => {
+                  setIsPlaying(true);
+                  // Initialize player when play button is clicked
+                  if (!playerRef.current) {
+                    if (!window.YT) {
+                      const tag = document.createElement('script');
+                      tag.src = 'https://www.youtube.com/iframe_api';
+                      const firstScriptTag = document.getElementsByTagName('script')[0];
+                      firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                      
+                      window.onYouTubeIframeAPIReady = () => {
+                        initYouTubePlayer(videoId);
+                      };
+                    } else {
+                      initYouTubePlayer(videoId);
+                    }
+                  }
+                }}
                 className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
               >
                 <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
@@ -236,14 +346,7 @@ const UserQuiz = () => {
               <p className="text-gray-400 mt-2 text-xs">Fast-forward is locked</p>
             </div>
           ) : (
-            <iframe
-              className="w-full h-full rounded"
-              src={`${src}&autoplay=1`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
+            <div id={`youtube-player-${videoId}`} className="w-full h-full rounded"></div>
           )}
           <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
             Fast-forward locked
