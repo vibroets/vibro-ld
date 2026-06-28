@@ -391,7 +391,6 @@ const UserQuiz = () => {
             onTimeUpdate={handleTimeUpdate}
             onEnded={handleEnded}
             onError={handleEnded}
-            controlsList="nodownload"
             controls
             src={src}
             autoPlay
