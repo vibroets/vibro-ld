@@ -110,32 +110,74 @@ const UserQuiz = () => {
   // Use imported helpers for question preparation, scoring, and branching.
 
   // Video component to handle different video sources
-  const VideoPlayer = ({ videoUrl }) => {
+  const VideoPlayer = React.memo(({ videoUrl }) => {
     const [src, setSrc] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
-    const [isPlaying, setIsPlaying] = useState(false);
     const lastVideoUrlRef = useRef(null);
+    const playerRef = useRef(null);
+    const progressIntervalRef = useRef(null);
 
-    // Progress tracking - only runs when video is playing
-    useEffect(() => {
-      if (!isPlaying || !isYouTube) return;
+    const initYouTubePlayer = (videoId) => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+      }
       
-      const progressInterval = setInterval(() => {
-        if (videoProgress < 100) {
-          setVideoProgress(prev => Math.min(prev + 1, 100));
-        } else {
-          clearInterval(progressInterval);
-          setVideoCompleted(true);
-          if (!trainingConfirmationRequired) {
-            setQuizStarted(true);
+      const player = new window.YT.Player(`youtube-player-${videoId}`, {
+        height: '100%',
+        width: '100%',
+        videoId: videoId,
+        playerVars: {
+          'autoplay': 1,
+          'controls': 1,
+          'modestbranding': 1,
+          'rel': 0
+        },
+        events: {
+          'onReady': (event) => {
+            console.log('YouTube player ready');
+            event.target.playVideo();
+            
+            // Clear any existing interval
+            if (progressIntervalRef.current) {
+              clearInterval(progressIntervalRef.current);
+            }
+            
+            // Track progress every second using actual video time
+            progressIntervalRef.current = setInterval(() => {
+              if (event.target && event.target.getCurrentTime && event.target.getDuration) {
+                const currentTime = event.target.getCurrentTime();
+                const duration = event.target.getDuration();
+                if (duration > 0) {
+                  const progress = (currentTime / duration) * 100;
+                  setVideoProgress(Math.min(progress, 100));
+                  setMaxWatchedPosition(prev => Math.max(prev, currentTime));
+                  
+                  if (progress >= 100) {
+                    clearInterval(progressIntervalRef.current);
+                    setVideoCompleted(true);
+                    if (!trainingConfirmationRequired) {
+                      setQuizStarted(true);
+                    }
+                  }
+                }
+              }
+            }, 1000);
+          },
+          'onStateChange': (event) => {
+            if (event.data === window.YT.PlayerState.ENDED) {
+              setVideoCompleted(true);
+              setVideoProgress(100);
+              if (!trainingConfirmationRequired) {
+                setQuizStarted(true);
+              }
+            }
           }
         }
-      }, 1000);
-      
-      return () => clearInterval(progressInterval);
-    }, [isPlaying, isYouTube]); // eslint-disable-line react-hooks/exhaustive-deps
+      });
+      playerRef.current = player;
+    };
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -183,9 +225,23 @@ const UserQuiz = () => {
         }
         console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
-          const embedUrl = `https://www.youtube.com/embed/${videoId}?controls=1&modestbranding=1&rel=0`;
-          setSrc(embedUrl);
+          setSrc(`https://www.youtube.com/embed/${videoId}?enablejsapi=1&autoplay=1&controls=1&modestbranding=1&rel=0`);
           setIsYouTube(true);
+          
+          // Load YouTube Player API and initialize player
+          if (!window.YT) {
+            const tag = document.createElement('script');
+            tag.src = 'https://www.youtube.com/iframe_api';
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            
+            window.onYouTubeIframeAPIReady = () => {
+              initYouTubePlayer(videoId);
+            };
+          } else {
+            setTimeout(() => initYouTubePlayer(videoId), 100);
+          }
+          
           setLoading(false);
         } else {
           console.error('Invalid YouTube URL:', videoUrl);
@@ -239,31 +295,10 @@ const UserQuiz = () => {
     }
 
     if (isYouTube) {
+      const videoId = src.split('embed/')[1]?.split('?')[0];
       return (
         <div className="w-full h-96 bg-black rounded relative">
-          {!isPlaying ? (
-            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10">
-              <button
-                onClick={() => setIsPlaying(true)}
-                className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
-              >
-                <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M8 5v14l11-7z"/>
-                </svg>
-              </button>
-              <p className="text-white mt-4 text-sm">Click to play video</p>
-              <p className="text-gray-400 mt-2 text-xs">Fast-forward is disabled</p>
-            </div>
-          ) : (
-            <iframe
-              className="w-full h-full rounded"
-              src={`${src}&autoplay=1`}
-              title="YouTube video player"
-              frameBorder="0"
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-            />
-          )}
+          <div id={`youtube-player-${videoId}`} className="w-full h-full rounded"></div>
           <div className="absolute bottom-0 left-0 right-0 h-8 bg-black/80 flex items-center px-4">
             <div className="flex-1 h-2 bg-gray-700 rounded overflow-hidden mr-4">
               <div 
@@ -307,7 +342,7 @@ const UserQuiz = () => {
         Your browser does not support the video tag.
       </video>
     );
-  };
+  });
 
   useEffect(() => {
     // Prevent infinite loop by checking if we've already loaded this quiz
