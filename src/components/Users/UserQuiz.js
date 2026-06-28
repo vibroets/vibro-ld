@@ -140,9 +140,14 @@ const UserQuiz = () => {
             setError('Failed to load video from IndexedDB - please refresh the page or re-upload the video');
             setLoading(false);
           });
-      } else if (videoUrl && videoUrl.includes('youtube.com/watch')) {
+      } else if (videoUrl && (videoUrl.includes('youtube.com/watch') || videoUrl.includes('youtu.be/'))) {
         // Handle YouTube URLs - convert to embed format
-        const videoId = videoUrl.split('v=')[1]?.split('&')[0];
+        let videoId;
+        if (videoUrl.includes('youtube.com/watch')) {
+          videoId = videoUrl.split('v=')[1]?.split('&')[0];
+        } else if (videoUrl.includes('youtu.be/')) {
+          videoId = videoUrl.split('youtu.be/')[1]?.split('?')[0]?.split('&')[0];
+        }
         console.log('Loading YouTube video with ID:', videoId);
         if (videoId) {
           const embedUrl = `https://www.youtube.com/embed/${videoId}`;
