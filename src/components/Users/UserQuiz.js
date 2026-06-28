@@ -142,8 +142,6 @@ const UserQuiz = () => {
     const [videoProgress, setVideoProgress] = useState(0);
     // eslint-disable-next-line no-unused-vars
     const [maxWatchedPosition, setMaxWatchedPosition] = useState(0);
-    // eslint-disable-next-line no-unused-vars
-    const [warningMessage, setWarningMessage] = useState('');
     const internalVideoRef = useRef(null);
     const videoRef = externalVideoRef || internalVideoRef;
     const lastVideoUrlRef = useRef(null);
@@ -169,18 +167,6 @@ const UserQuiz = () => {
 
         if (progress >= 100 && onVideoComplete) {
           onVideoComplete();
-        }
-      }
-    };
-
-    const handleSeeking = (e) => {
-      e.preventDefault();
-      if (videoRef.current) {
-        const currentTime = videoRef.current.currentTime;
-        if (currentTime > maxWatchedPosition) {
-          videoRef.current.currentTime = maxWatchedPosition;
-          setWarningMessage('Fast-forwarding is disabled. Please watch the entire video.');
-          setTimeout(() => setWarningMessage(''), 3000);
         }
       }
     };
@@ -353,7 +339,6 @@ const UserQuiz = () => {
                 </svg>
               </button>
               <p className="text-white mt-4 text-sm">Click to play video</p>
-              <p className="text-gray-400 mt-2 text-xs">Fast-forward is locked</p>
             </div>
           ) : (
             <>
@@ -381,9 +366,6 @@ const UserQuiz = () => {
               </div>
             </>
           )}
-          <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-            Fast-forward locked
-          </div>
         </div>
       );
     }
@@ -401,13 +383,11 @@ const UserQuiz = () => {
               </svg>
             </button>
             <p className="text-white mt-4 text-sm">Click to play video</p>
-            <p className="text-gray-400 mt-2 text-xs">Fast-forward is locked</p>
           </div>
         ) : (
           <video
             ref={videoRef}
             className="w-full h-full object-contain bg-black"
-            onSeeking={handleSeeking}
             onTimeUpdate={handleTimeUpdate}
             onEnded={handleEnded}
             onError={handleEnded}
@@ -427,9 +407,6 @@ const UserQuiz = () => {
             Your browser does not support the video tag.
           </video>
         )}
-        <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
-          Fast-forward locked
-        </div>
       </div>
     );
   });
