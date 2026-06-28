@@ -179,7 +179,7 @@ const Sidebar = ({ currentUser, onCloseMobile }) => {
   const hasModuleAccessConfig = currentAdmin && currentAdmin.moduleAccess &&
     Object.values(currentAdmin.moduleAccess).some(v => v === true);
   const filteredAdminMenuItems = currentAdmin && currentAdmin.isAdmin && !currentAdmin.isSuperAdmin && hasModuleAccessConfig
-    ? adminMenuItems.filter(item => !item.moduleKey || currentAdmin.moduleAccess[item.moduleKey] === true || item.moduleKey === 'dashboard' || item.isHeader)
+    ? adminMenuItems.filter(item => !item.moduleKey || currentAdmin.moduleAccess[item.moduleKey] === true || item.moduleKey === 'dashboard' || item.moduleKey === 'analytics' || item.isHeader)
     : adminMenuItems;
 
   const userMenuItems = [
