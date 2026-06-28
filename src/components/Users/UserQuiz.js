@@ -406,20 +406,42 @@ const UserQuiz = () => {
       }
     } else if (foundVideo) {
       // This is a video training
-      // Construct videoUrl from video data
+      // Construct videoUrl from video data based on videoSourceType
       let videoUrl = null;
-      if (foundVideo.referenceType === 'url' && foundVideo.url) {
+      
+      console.log('Video source type:', foundVideo.videoSourceType);
+      console.log('Video reference type:', foundVideo.referenceType);
+      console.log('Video has url:', !!foundVideo.url);
+      console.log('Video has file:', !!foundVideo.file);
+      
+      if (foundVideo.videoSourceType === 'url' && foundVideo.url) {
+        // URL-based video
         videoUrl = foundVideo.url;
-      } else if (foundVideo.file || foundVideo.referenceType === 'direct') {
+      } else if (foundVideo.videoSourceType === 'direct' || foundVideo.file) {
+        // File-based video from IndexedDB
         videoUrl = `indexeddb://${foundVideo.id}`;
-      } else if (foundVideo.url) {
+      } else if (foundVideo.referenceType === 'url' && foundVideo.url) {
+        // Fallback: check referenceType
         videoUrl = foundVideo.url;
+      } else if (foundVideo.url) {
+        // Fallback: use url if available
+        videoUrl = foundVideo.url;
+      } else if (foundVideo.file) {
+        // Fallback: use IndexedDB
+        videoUrl = `indexeddb://${foundVideo.id}`;
       }
       
       // Add videoUrl to the video object
       const videoWithUrl = { ...foundVideo, videoUrl };
       console.log('Video data:', videoWithUrl);
       console.log('Constructed videoUrl:', videoUrl);
+      
+      if (!videoUrl) {
+        console.error('No video URL could be constructed from video data');
+        alert('This video has no valid source. Please contact your administrator to re-upload the video.');
+        navigate('/user-training-calendar');
+        return;
+      }
       
       setQuizData(videoWithUrl);
       setShowVideo(true);
