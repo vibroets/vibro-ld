@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Users, BookOpen, BarChart3, LogOut, Home, Cloud, Upload } from 'lucide-react';
+import { Users, BookOpen, BarChart3, LogOut, Home, Cloud, Upload, RotateCcw } from 'lucide-react';
 import Sidebar from './Sidebar';
 import { pushLocalDataToCloud, isFirebaseConfigured } from '../services/dataSync';
-import { migrateVideosFromIndexedDB } from '../services/supabaseService';
+import { migrateVideosFromIndexedDB, restoreVideosFromSupabase } from '../services/supabaseService';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -261,6 +261,20 @@ const Dashboard = () => {
     setMigrating(false);
   };
 
+  const handleRestoreVideos = async () => {
+    setMigrating(true);
+    setMigrationStatus('Restoring videos from Supabase...');
+    try {
+      const result = await restoreVideosFromSupabase();
+      setMigrationStatus(`Restored ${result.count} videos from Supabase`);
+      setTimeout(() => window.location.reload(), 1000);
+    } catch (error) {
+      setMigrationStatus('Restore failed: ' + error.message);
+      setTimeout(() => setMigrationStatus(''), 5000);
+    }
+    setMigrating(false);
+  };
+
   
   const currentUser = JSON.parse(localStorage.getItem('currentAdmin') || 'null');
   
@@ -489,6 +503,14 @@ const Dashboard = () => {
             >
               <Upload className="w-4 h-4 mr-2" />
               {migrating ? 'Migrating...' : 'Migrate Videos'}
+            </button>
+            <button
+              onClick={handleRestoreVideos}
+              disabled={migrating}
+              className="flex items-center px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition duration-200 text-sm font-medium disabled:opacity-50"
+            >
+              <RotateCcw className="w-4 h-4 mr-2" />
+              {migrating ? 'Restoring...' : 'Restore Videos'}
             </button>
             {syncStatus && (
               <span className={`text-sm font-medium ${syncStatus.includes('failed') || syncStatus.includes('errors') ? 'text-red-600' : 'text-green-600'}`}>

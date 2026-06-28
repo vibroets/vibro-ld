@@ -118,6 +118,43 @@ export const migrateVideosFromIndexedDB = async () => {
   return results;
 };
 
+// Restore videos from Supabase to fix corrupted localStorage
+export const restoreVideosFromSupabase = async () => {
+  try {
+    const { data: videosData } = await supabase.from('videos').select('*');
+    if (videosData && videosData.length > 0) {
+      const videos = videosData.map(v => ({
+        id: v.id,
+        title: v.title,
+        description: v.description || '',
+        videoUrl: v.url || '',
+        fileUrl: v.file_url || v.url || '',
+        thumbnail: v.thumbnail || '',
+        duration: v.duration || '',
+        videoSourceType: v.url && v.url.startsWith('http') ? 'url' : 'file',
+        questions: v.questions || [],
+        questionsPerUser: v.questions_per_user || 10,
+        timeLimit: v.time_limit || 30,
+        passPercentage: v.pass_percentage || 70,
+        certificateEnabled: v.certificate_enabled ?? true,
+        certificateValidityValue: v.certificate_validity_value || 1,
+        certificateValidityUnit: v.certificate_validity_unit || 'year',
+        accessMode: v.access_mode || 'permanent',
+        reassignOnFail: v.reassign_on_fail ?? false,
+        rescheduleDays: v.reschedule_days || 7,
+        selectedUsers: v.selected_users || []
+      }));
+      localStorage.setItem('videos', JSON.stringify(videos));
+      console.log(`Restored ${videos.length} videos from Supabase`);
+      return { success: true, count: videos.length };
+    }
+    return { success: true, count: 0 };
+  } catch (error) {
+    console.error('Restore error:', error);
+    throw error;
+  }
+};
+
 // Users
 export const getUsers = async () => {
   const { data, error } = await supabase.from('users').select('*');
