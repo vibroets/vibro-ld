@@ -30,43 +30,62 @@ const UserQuiz = () => {
   // Utility function to retrieve video from IndexedDB
   const getVideoFromIndexedDB = (videoId) => {
     return new Promise((resolve, reject) => {
+      console.log('Opening IndexedDB: VideoTrainingDB, version 5');
       const request = indexedDB.open('VideoTrainingDB', 5);
       
-      request.onerror = () => reject(request.error);
+      request.onerror = () => {
+        console.error('IndexedDB open error:', request.error);
+        reject(request.error);
+      };
+      
       request.onsuccess = () => {
+        console.log('IndexedDB opened successfully');
         const db = request.result;
         
         // Check if the object store exists
         if (!db.objectStoreNames.contains('videos')) {
+          console.error('Videos object store not found. Available stores:', Array.from(db.objectStoreNames));
           reject(new Error('Videos object store not found'));
           return;
         }
         
+        console.log('Videos object store found');
         const transaction = db.transaction(['videos'], 'readonly');
         const store = transaction.objectStore('videos');
         
         const getRequest = store.get(videoId);
         getRequest.onsuccess = () => {
           const videoData = getRequest.result;
+          console.log('Video data retrieved:', videoData ? 'Found' : 'Not found');
           if (videoData && videoData.file) {
             // Create blob URL asynchronously to avoid blocking
             try {
               const blobUrl = URL.createObjectURL(videoData.file);
+              console.log('Blob URL created:', blobUrl);
               resolve(blobUrl);
             } catch (error) {
+              console.error('Failed to create blob URL:', error);
               reject(new Error('Failed to create blob URL: ' + error.message));
             }
           } else {
+            console.error('Video not found in IndexedDB for ID:', videoId);
             reject(new Error('Video not found in IndexedDB'));
           }
         };
-        getRequest.onerror = () => reject(getRequest.error);
+        getRequest.onerror = () => {
+          console.error('IndexedDB get error:', getRequest.error);
+          reject(getRequest.error);
+        };
         
         // Add transaction error handling
-        transaction.onerror = () => reject(transaction.error);
+        transaction.onerror = () => {
+          console.error('IndexedDB transaction error:', transaction.error);
+          reject(transaction.error);
+        };
       };
       
       request.onupgradeneeded = () => {
+        console.log('IndexedDB upgrade needed');
         const db = request.result;
         if (!db.objectStoreNames.contains('videos')) {
           db.createObjectStore('videos', { keyPath: 'id' });
@@ -200,6 +219,8 @@ const UserQuiz = () => {
         // Retrieve video from IndexedDB with timeout
         const videoId = videoUrl.replace('indexeddb://', '');
         console.log('Loading video from IndexedDB with ID:', videoId);
+        console.log('Is mobile device:', isMobile);
+        console.log('IndexedDB support:', typeof indexedDB !== 'undefined');
         
         isLoadingRef.current = true;
         
@@ -225,6 +246,7 @@ const UserQuiz = () => {
           })
           .catch(error => {
             console.error('Failed to load video from IndexedDB:', error);
+            console.error('Error details:', error.message);
             clearTimeout(timeoutId);
             isLoadingRef.current = false;
             setError('Failed to load video from IndexedDB - please refresh the page or re-upload the video');
