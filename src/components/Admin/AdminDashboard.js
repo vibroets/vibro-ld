@@ -922,7 +922,7 @@ const AdminDashboard = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Question-by-Question Breakdown</h3>
                 {selectedResult.questions && selectedResult.questions.map((question, index) => {
-                  const userAnswer = selectedResult.answers[index];
+                  const userAnswer = selectedResult.answers && selectedResult.answers[index];
                   const isCorrect = checkAnswerCorrect(question, userAnswer);
                   const qType = question.type || QUESTION_TYPES.MULTIPLE_CHOICE;
                   const isOptionType = qType === QUESTION_TYPES.MULTIPLE_CHOICE || qType === QUESTION_TYPES.TRUE_FALSE;
