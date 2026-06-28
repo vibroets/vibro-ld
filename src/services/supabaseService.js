@@ -2,7 +2,9 @@ import { supabase } from '../supabaseConfig';
 
 // Video Storage - Upload to Supabase Storage
 export const uploadVideoFile = async (file, videoId) => {
-  const fileName = `${videoId}_${file.name}`;
+  // Use only video ID for the filename to avoid special character issues
+  const fileExtension = file.name.split('.').pop();
+  const fileName = `${videoId}.${fileExtension}`;
   const filePath = `videos/${fileName}`;
   
   const { error } = await supabase.storage
