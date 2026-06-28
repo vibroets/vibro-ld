@@ -246,34 +246,39 @@ const UserQuiz = () => {
   };
 
   useEffect(() => {
-    const searchParams = new URLSearchParams(location.search);
-    const mode = searchParams.get('mode');
-    const resultId = searchParams.get('resultId');
+    try {
+      const searchParams = new URLSearchParams(location.search);
+      const mode = searchParams.get('mode');
+      const resultId = searchParams.get('resultId');
 
-    if (mode === 'review' && resultId) {
-      setIsReviewMode(true);
-      setReviewResultId(resultId);
-    }
+      if (mode === 'review' && resultId) {
+        setIsReviewMode(true);
+        setReviewResultId(resultId);
+      }
 
-    // Check if user is logged in
-    const userData = localStorage.getItem('currentUser');
-    if (!userData) {
-      // Redirect to user login if no user is logged in
-      navigate('/user-login');
-      return;
-    }
-    setUser(JSON.parse(userData));
+      // Check if user is logged in
+      const userData = localStorage.getItem('currentUser');
+      if (!userData) {
+        // Redirect to user login if no user is logged in
+        navigate('/user-login');
+        return;
+      }
+      setUser(JSON.parse(userData));
 
-    // Load quiz data from all sources
-    const quizzes = JSON.parse(localStorage.getItem('quizzes') || '[]');
-    const videos = JSON.parse(localStorage.getItem('videos') || '[]');
-    const trainingItems = JSON.parse(localStorage.getItem('trainingItems') || '[]');
-    
-    
-    // Find the quiz or video by ID (check all sources)
-    const foundQuiz = quizzes.find(q => q.id === quizId);
-    const foundVideo = videos.find(v => v.id === quizId);
-    const foundTraining = trainingItems.find(t => t.id === quizId);
+      // Load quiz data from all sources with array guards
+      const quizzesRaw = localStorage.getItem('quizzes');
+      const videosRaw = localStorage.getItem('videos');
+      const trainingItemsRaw = localStorage.getItem('trainingItems');
+      
+      const quizzes = Array.isArray(quizzesRaw) ? quizzesRaw : (quizzesRaw ? JSON.parse(quizzesRaw) : []);
+      const videos = Array.isArray(videosRaw) ? videosRaw : (videosRaw ? JSON.parse(videosRaw) : []);
+      const trainingItems = Array.isArray(trainingItemsRaw) ? trainingItemsRaw : (trainingItemsRaw ? JSON.parse(trainingItemsRaw) : []);
+      
+      
+      // Find the quiz or video by ID (check all sources)
+      const foundQuiz = quizzes.find(q => String(q.id) === String(quizId));
+      const foundVideo = videos.find(v => String(v.id) === String(quizId));
+      const foundTraining = trainingItems.find(t => String(t.id) === String(quizId));
     
     // Determine training type and effective item data
     let effectiveItem = foundQuiz || foundVideo || foundTraining;
@@ -504,6 +509,11 @@ const UserQuiz = () => {
       }
     } else {
       alert('Quiz, video, or training not found. Please contact your administrator.');
+      navigate('/user-dashboard');
+    }
+    } catch (error) {
+      console.error('Error loading quiz/video data:', error);
+      alert('An error occurred while loading the training content. Please try again or contact your administrator.');
       navigate('/user-dashboard');
     }
   }, [quizId, navigate, location.search, trainingConfirmationRequired, user]);
