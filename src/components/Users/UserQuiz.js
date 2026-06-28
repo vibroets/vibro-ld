@@ -118,7 +118,7 @@ const UserQuiz = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const lastVideoUrlRef = useRef(null);
     const lastBlobUrlRef = useRef(null);
-    const isMountedRef = useRef(false);
+    const isLoadingRef = useRef(false);
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -128,11 +128,17 @@ const UserQuiz = () => {
         currentVideoId = videoUrl; // Use the indexeddb:// ID for comparison
       }
       
-      if (currentVideoId === lastVideoUrlRef.current && isMountedRef.current) {
+      // Return early if same video and already loaded or loading
+      if (currentVideoId === lastVideoUrlRef.current && (src || isLoadingRef.current)) {
         return;
       }
+      
+      // Return early if already loading this video
+      if (isLoadingRef.current && currentVideoId === lastVideoUrlRef.current) {
+        return;
+      }
+      
       lastVideoUrlRef.current = currentVideoId;
-      isMountedRef.current = true;
       
       let timeoutId;
       
@@ -143,9 +149,12 @@ const UserQuiz = () => {
         const videoId = videoUrl.replace('indexeddb://', '');
         console.log('Loading video from IndexedDB with ID:', videoId);
         
+        isLoadingRef.current = true;
+        
         const timeoutPromise = new Promise((_, reject) => {
           timeoutId = setTimeout(() => {
             console.error('Video loading timeout after 5 seconds');
+            isLoadingRef.current = false;
             reject(new Error('Video loading timeout - please try again'));
           }, 5000); // 5 second timeout
         });
@@ -154,6 +163,7 @@ const UserQuiz = () => {
           .then(blobUrl => {
             console.log('Video loaded successfully from IndexedDB:', blobUrl);
             clearTimeout(timeoutId);
+            isLoadingRef.current = false;
             // Only set src if the blob URL has changed
             if (blobUrl !== lastBlobUrlRef.current) {
               lastBlobUrlRef.current = blobUrl;
@@ -164,6 +174,7 @@ const UserQuiz = () => {
           .catch(error => {
             console.error('Failed to load video from IndexedDB:', error);
             clearTimeout(timeoutId);
+            isLoadingRef.current = false;
             setError('Failed to load video from IndexedDB - please refresh the page or re-upload the video');
             setLoading(false);
           });
