@@ -213,6 +213,7 @@ const UserQuiz = () => {
           clearTimeout(timeoutId);
         }
       };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [videoUrl]);
 
     if (loading) {
