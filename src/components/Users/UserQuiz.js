@@ -117,6 +117,7 @@ const UserQuiz = () => {
     const [isYouTube, setIsYouTube] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
     const lastVideoUrlRef = useRef(null);
+    const lastBlobUrlRef = useRef(null);
 
     useEffect(() => {
       // Prevent infinite loop by checking if videoUrl actually changed
@@ -151,7 +152,11 @@ const UserQuiz = () => {
           .then(blobUrl => {
             console.log('Video loaded successfully from IndexedDB:', blobUrl);
             clearTimeout(timeoutId);
-            setSrc(blobUrl);
+            // Only set src if the blob URL has changed
+            if (blobUrl !== lastBlobUrlRef.current) {
+              lastBlobUrlRef.current = blobUrl;
+              setSrc(blobUrl);
+            }
             setLoading(false);
           })
           .catch(error => {
