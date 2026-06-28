@@ -19,7 +19,6 @@ const UserTrainingCalendar = () => {
   const [attendanceStatus, setAttendanceStatus] = useState({});
   const [showScoreModal, setShowScoreModal] = useState(false);
   const [selectedDateResults, setSelectedDateResults] = useState(null);
-  const [activeTab, setActiveTab] = useState('today'); // 'today', 'upcoming', 'calendar'
 
   const loadCurrentUser = useCallback(() => {
     const userData = localStorage.getItem('currentUser');
