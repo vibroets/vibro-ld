@@ -233,6 +233,7 @@ const UserQuiz = () => {
                 </svg>
               </button>
               <p className="text-white mt-4 text-sm">Click to play video</p>
+              <p className="text-gray-400 mt-2 text-xs">Fast-forward is locked</p>
             </div>
           ) : (
             <iframe
@@ -244,6 +245,9 @@ const UserQuiz = () => {
               allowFullScreen
             />
           )}
+          <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+            Fast-forward locked
+          </div>
         </div>
       );
     }
@@ -1236,15 +1240,6 @@ const UserQuiz = () => {
                   className="h-full bg-blue-500 transition-all duration-300"
                   style={{ width: `${videoProgress}%` }}
                 />
-              </div>
-
-              {/* Progress Status */}
-              <div className="mt-3 md:mt-4 text-center">
-                <p className="text-sm text-gray-600">
-                  Progress: <span className="font-semibold">{Math.round(videoProgress)}%</span>
-                  {videoProgress < 100 && <span className="ml-2 text-amber-600 font-medium">- Watch complete to start quiz</span>}
-                  {videoProgress >= 100 && <span className="ml-2 text-green-600 font-medium">- Complete! Quiz starting...</span>}
-                </p>
               </div>
             </div>
           )}
