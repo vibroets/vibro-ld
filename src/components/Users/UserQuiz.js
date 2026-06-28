@@ -119,7 +119,6 @@ const UserQuiz = () => {
     const lastVideoUrlRef = useRef(null);
     const playerRef = useRef(null);
     const maxWatchedRef = useRef(0);
-    const isSeekingRef = useRef(false);
 
     const initYouTubePlayer = (videoId) => {
       if (playerRef.current) {
@@ -132,7 +131,7 @@ const UserQuiz = () => {
         return;
       }
       
-      const player = new window.YT.Player(`youtube-player-${videoId}`, {
+      new window.YT.Player(`youtube-player-${videoId}`, {
         height: '100%',
         width: '100%',
         videoId: videoId,
