@@ -132,6 +132,9 @@ const UserQuiz = () => {
     const isLoadingRef = useRef(false);
     const hasLoadedRef = useRef(false);
 
+    // Detect mobile device
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     // Internal video event handlers to prevent parent re-renders
     const handleTimeUpdate = () => {
       if (videoRef.current) {
@@ -353,6 +356,14 @@ const UserQuiz = () => {
             controls
             src={src}
             autoPlay
+            playsInline
+            muted={isMobile}
+            onPlay={() => {
+              // Unmute on first user interaction for mobile
+              if (videoRef.current && videoRef.current.muted) {
+                videoRef.current.muted = false;
+              }
+            }}
           >
             Your browser does not support the video tag.
           </video>
