@@ -278,29 +278,50 @@ const UserQuiz = () => {
     }
 
     return (
-      <video
-        ref={videoRef}
-        className="w-full h-96 object-contain bg-black"
-        onSeeking={handleVideoSeeking}
-        onTimeUpdate={handleVideoTimeUpdate}
-        onEnded={() => {
-          setVideoCompleted(true);
-          if (!trainingConfirmationRequired) {
-            setQuizStarted(true);
-          }
-        }}
-        onError={() => {
-          setVideoCompleted(true);
-          if (!trainingConfirmationRequired) {
-            setQuizStarted(true);
-          }
-        }}
-        controlsList="nodownload"
-        controls
-        src={src}
-      >
-        Your browser does not support the video tag.
-      </video>
+      <div className="w-full h-96 bg-black rounded relative">
+        {!isPlaying ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-10">
+            <button
+              onClick={() => setIsPlaying(true)}
+              className="w-20 h-20 bg-blue-600 rounded-full flex items-center justify-center hover:bg-blue-700 transition-colors"
+            >
+              <svg className="w-10 h-10 text-white ml-1" fill="currentColor" viewBox="0 0 24 24">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+            <p className="text-white mt-4 text-sm">Click to play video</p>
+            <p className="text-gray-400 mt-2 text-xs">Fast-forward is locked</p>
+          </div>
+        ) : (
+          <video
+            ref={videoRef}
+            className="w-full h-full object-contain bg-black"
+            onSeeking={handleVideoSeeking}
+            onTimeUpdate={handleVideoTimeUpdate}
+            onEnded={() => {
+              setVideoCompleted(true);
+              if (!trainingConfirmationRequired) {
+                setQuizStarted(true);
+              }
+            }}
+            onError={() => {
+              setVideoCompleted(true);
+              if (!trainingConfirmationRequired) {
+                setQuizStarted(true);
+              }
+            }}
+            controlsList="nodownload"
+            controls
+            src={src}
+            autoPlay
+          >
+            Your browser does not support the video tag.
+          </video>
+        )}
+        <div className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded">
+          Fast-forward locked
+        </div>
+      </div>
     );
   });
 
