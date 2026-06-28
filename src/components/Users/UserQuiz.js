@@ -118,6 +118,7 @@ const UserQuiz = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     // eslint-disable-next-line no-unused-vars
     const [videoProgress, setVideoProgress] = useState(0);
+    // eslint-disable-next-line no-unused-vars
     const [maxWatchedPosition, setMaxWatchedPosition] = useState(0);
     // eslint-disable-next-line no-unused-vars
     const [warningMessage, setWarningMessage] = useState('');
