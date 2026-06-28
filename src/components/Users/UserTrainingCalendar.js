@@ -410,8 +410,9 @@ const UserTrainingCalendar = () => {
         const video = videos.find(v => String(v.id) === String(contentId));
         if (video) {
           console.log(`Found video: ${video.title}`);
+          console.log(`Video has file: ${!!video.file}, url: ${!!video.url}, videoUrl: ${!!video.videoUrl}, referenceType: ${video.referenceType}`);
           // Check if video has a file in IndexedDB or URL
-          if (video.file || video.url || video.referenceType === 'direct') {
+          if (video.file || video.url || video.videoUrl || video.referenceType === 'direct') {
             navigate(`/quiz/${contentId}`);
           } else {
             alert(`Video "${video.title}" has no file associated with it. Please contact your administrator.`);
