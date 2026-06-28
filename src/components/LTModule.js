@@ -425,10 +425,18 @@ const LTModule = () => {
         id: editingVideo ? editingVideo.id : Date.now().toString(),
         ...videoForm,
         type: 'video',
+        referenceType: 'url', // Set referenceType to 'url' for URL-based videos
         createdAt: editingVideo ? editingVideo.createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         isActive: true
       };
+      
+      // Ensure videoUrl is set from videoForm
+      if (!videoData.videoUrl && videoForm.videoUrl) {
+        videoData.videoUrl = videoForm.videoUrl;
+      }
+      
+      console.log('Saving URL video with data:', videoData);
       
       // Remove file object from storage as it's not serializable
       const { videoFile, ...serializableData } = videoData;

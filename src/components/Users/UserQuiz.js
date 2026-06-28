@@ -411,21 +411,25 @@ const UserQuiz = () => {
       
       console.log('Video source type:', foundVideo.videoSourceType);
       console.log('Video reference type:', foundVideo.referenceType);
+      console.log('Video has videoUrl:', !!foundVideo.videoUrl);
       console.log('Video has url:', !!foundVideo.url);
       console.log('Video has file:', !!foundVideo.file);
       console.log('Full video object:', JSON.stringify(foundVideo, null, 2));
       
-      if (foundVideo.videoSourceType === 'url' && foundVideo.url) {
+      if (foundVideo.videoSourceType === 'url' && foundVideo.videoUrl) {
         // URL-based video
-        videoUrl = foundVideo.url;
-      } else if (foundVideo.videoSourceType === 'direct' || foundVideo.file) {
+        videoUrl = foundVideo.videoUrl;
+      } else if (foundVideo.videoSourceType === 'file' || foundVideo.file) {
         // File-based video from IndexedDB
         videoUrl = `indexeddb://${foundVideo.id}`;
-      } else if (foundVideo.referenceType === 'url' && foundVideo.url) {
+      } else if (foundVideo.referenceType === 'url' && foundVideo.videoUrl) {
         // Fallback: check referenceType
-        videoUrl = foundVideo.url;
+        videoUrl = foundVideo.videoUrl;
+      } else if (foundVideo.videoUrl) {
+        // Fallback: use videoUrl if available
+        videoUrl = foundVideo.videoUrl;
       } else if (foundVideo.url) {
-        // Fallback: use url if available
+        // Fallback: use url property if available (legacy)
         videoUrl = foundVideo.url;
       } else if (foundVideo.file) {
         // Fallback: use IndexedDB
