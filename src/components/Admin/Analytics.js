@@ -215,15 +215,25 @@ const Analytics = () => {
 
     switch (metric) {
       case 'totalTrainings':
-        return trainingSchedules.map(t => ({
-          title: t.title,
-          date: t.startDate,
-          venue: t.venue,
-          trainer: t.trainer,
-          status: t.status,
-          participants: t.participants?.length || 0,
-          trainingId: t.id
-        }));
+        return trainingSchedules.map(t => {
+          const trainingAttendances = attendances.filter(a => a.trainingId === t.id);
+          const trainingEnrollments = enrollments.filter(e => e.trainingId === t.id);
+          const totalParticipants = t.participants?.length || trainingEnrollments.length || 0;
+          const attendedCount = trainingAttendances.length;
+          const adherenceRate = totalParticipants > 0 ? Math.round((attendedCount / totalParticipants) * 100) : 0;
+          
+          return {
+            title: t.title,
+            date: t.startDate,
+            venue: t.venue,
+            trainer: t.trainer,
+            status: t.status,
+            totalParticipants,
+            attendedCount,
+            adherenceRate: `${adherenceRate}%`,
+            trainingId: t.id
+          };
+        });
       
       case 'totalAttendees':
         return attendances.map(a => {
