@@ -116,8 +116,10 @@ const UserQuiz = () => {
     const [error, setError] = useState(null);
     const [isYouTube, setIsYouTube] = useState(false);
     const [isPlaying, setIsPlaying] = useState(false);
+    // eslint-disable-next-line no-unused-vars
     const [videoProgress, setVideoProgress] = useState(0);
     const [maxWatchedPosition, setMaxWatchedPosition] = useState(0);
+    // eslint-disable-next-line no-unused-vars
     const [warningMessage, setWarningMessage] = useState('');
     const internalVideoRef = useRef(null);
     const videoRef = externalVideoRef || internalVideoRef;
@@ -809,52 +811,6 @@ const UserQuiz = () => {
 
     translateContent();
   }, [selectedLanguage, currentQuestionIndex, shuffledQuestions]);
-
-  const handleVideoTimeUpdate = () => {
-    if (videoRef.current) {
-      const currentTime = videoRef.current.currentTime;
-      const duration = videoRef.current.duration;
-      const progress = (currentTime / duration) * 100;
-      setVideoProgress(progress);
-
-      // Track maximum watched position to prevent fast-forward
-      if (currentTime > maxWatchedPosition) {
-        setMaxWatchedPosition(currentTime);
-      }
-
-      // Save progress to localStorage for resume capability
-      if (user && quizId) {
-        const progressKey = `videoProgress_${user.id}_${quizId}`;
-        localStorage.setItem(progressKey, JSON.stringify({
-          currentTime,
-          duration,
-          progress,
-          maxWatchedPosition: Math.max(maxWatchedPosition, currentTime)
-        }));
-      }
-
-      // Only allow quiz at 100% completion
-      if (progress >= 100) {
-        setVideoCompleted(true);
-        if (!trainingConfirmationRequired) {
-          setQuizStarted(true);
-        }
-      }
-    }
-  };
-
-  const handleVideoSeeking = (e) => {
-    e.preventDefault();
-    if (videoRef.current) {
-      const currentTime = videoRef.current.currentTime;
-      // If user tries to seek forward beyond what they've watched, revert it
-      if (currentTime > maxWatchedPosition) {
-        videoRef.current.currentTime = maxWatchedPosition;
-        setWarningMessage('Fast-forwarding is disabled. Please watch the entire video.');
-        setTimeout(() => setWarningMessage(''), 3000);
-      }
-    }
-  };
 
 
   const handleAnswerChange = (questionIndex, value) => {
