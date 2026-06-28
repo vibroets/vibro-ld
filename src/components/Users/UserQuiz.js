@@ -96,7 +96,6 @@ const UserQuiz = () => {
   const [reviewResult, setReviewResult] = useState(null);
   const [trainingConfirmationRequired, setTrainingConfirmationRequired] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
-  const [constructedVideoUrl, setConstructedVideoUrl] = useState(null);
   const [currentTranslations, setCurrentTranslations] = useState({
     question: null,
     options: []
@@ -467,9 +466,8 @@ const UserQuiz = () => {
         return;
       }
       
-      // Don't modify the original video object - pass constructed videoUrl separately
+      // Use the video object as-is since videoUrl is now correctly saved
       setQuizData(foundVideo);
-      setConstructedVideoUrl(videoUrl);
       setShowVideo(true);
       setQuizStarted(false);
       setVideoCompleted(false);
@@ -1218,7 +1216,7 @@ const UserQuiz = () => {
               <h2 className="text-base md:text-lg font-semibold text-gray-900 mb-3 md:mb-4">Training Video</h2>
               
               {/* Video Display */}
-              <VideoPlayer videoUrl={constructedVideoUrl || quizData.videoUrl} />
+              <VideoPlayer videoUrl={quizData.videoUrl} />
 
               {/* Progress Bar */}
               <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-700">
