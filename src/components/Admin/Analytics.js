@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Calendar, Users, CheckCircle, XCircle, TrendingUp, Award, Clock, 
-  MapPin, Download, Filter 
+  MapPin, Download 
 } from 'lucide-react';
 import Sidebar from '../Sidebar';
 import { 
@@ -31,9 +31,9 @@ const Analytics = () => {
 
   useEffect(() => {
     loadAnalytics();
-  }, [timeFilter]);
+  }, [timeFilter, loadAnalytics]);
 
-  const loadAnalytics = () => {
+  const loadAnalytics = useCallback(() => {
     // Load data with array guards
     const trainingSchedulesRaw = JSON.parse(localStorage.getItem('trainingSchedules') || '[]');
     const trainingSchedules = Array.isArray(trainingSchedulesRaw) ? trainingSchedulesRaw : [];
@@ -137,7 +137,7 @@ const Analytics = () => {
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
       .slice(0, 5);
     setRecentTrainings(sortedTrainings);
-  };
+  }, [timeFilter]);
 
   const filterByTime = (data, filter) => {
     if (filter === 'all') return data;
