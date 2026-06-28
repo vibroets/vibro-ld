@@ -40,6 +40,7 @@ const LTModule = () => {
   const [shareSearchTerm, setShareSearchTerm] = useState('');
   const [showUserDetailsModal, setShowUserDetailsModal] = useState(false);
   const [userDetailsData, setUserDetailsData] = useState({ shared: [], attempted: [], title: '' });
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const [quizForm, setQuizForm] = useState({
     title: '',
@@ -328,6 +329,11 @@ const LTModule = () => {
   const handleVideoSubmit = (e) => {
     e.preventDefault();
     
+    // Prevent duplicate submissions
+    if (isSubmitting) {
+      return;
+    }
+    
     // If file is selected but not uploaded yet, simulate upload first
     if (videoForm.videoSourceType === 'file' && videoForm.videoFile && videoUploadProgress === 0) {
       simulateVideoUpload();
@@ -336,6 +342,7 @@ const LTModule = () => {
     
     // Handle file upload with Supabase Storage for cross-device access
     if (videoForm.videoSourceType === 'file' && videoForm.videoFile) {
+      setIsSubmitting(true);
       const videoId = editingVideo ? editingVideo.id : Date.now().toString();
       
       // Upload video file to Supabase Storage for cross-device access
@@ -394,12 +401,15 @@ const LTModule = () => {
           alert(`Video training ${action} successfully!`);
           clearDraft('video', editingVideo ? editingVideo.id : 'new');
           resetVideoForm();
+          setIsSubmitting(false);
         })
         .catch(error => {
           alert('Error storing video. Please try again.');
+          setIsSubmitting(false);
         });
     } else {
       // Handle URL submission (existing logic)
+      setIsSubmitting(true);
       const videoData = {
         id: editingVideo ? editingVideo.id : Date.now().toString(),
         ...videoForm,
@@ -437,6 +447,7 @@ const LTModule = () => {
       alert(`Video training ${action} successfully!`);
       clearDraft('video', editingVideo ? editingVideo.id : 'new');
       resetVideoForm();
+      setIsSubmitting(false);
     }
   };
 
