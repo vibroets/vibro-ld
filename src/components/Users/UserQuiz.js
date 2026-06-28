@@ -413,6 +413,7 @@ const UserQuiz = () => {
       console.log('Video reference type:', foundVideo.referenceType);
       console.log('Video has url:', !!foundVideo.url);
       console.log('Video has file:', !!foundVideo.file);
+      console.log('Full video object:', JSON.stringify(foundVideo, null, 2));
       
       if (foundVideo.videoSourceType === 'url' && foundVideo.url) {
         // URL-based video
@@ -438,7 +439,15 @@ const UserQuiz = () => {
       
       if (!videoUrl) {
         console.error('No video URL could be constructed from video data');
-        alert('This video has no valid source. Please contact your administrator to re-upload the video.');
+        console.error('Video metadata:', {
+          id: foundVideo.id,
+          title: foundVideo.title,
+          videoSourceType: foundVideo.videoSourceType,
+          referenceType: foundVideo.referenceType,
+          hasUrl: !!foundVideo.url,
+          hasFile: !!foundVideo.file
+        });
+        alert(`The video "${foundVideo.title}" has no valid source.\n\nVideo Type: ${foundVideo.videoSourceType}\nReference Type: ${foundVideo.referenceType}\n\nPlease contact your administrator to re-upload the video with a valid file or URL.`);
         navigate('/user-training-calendar');
         return;
       }
