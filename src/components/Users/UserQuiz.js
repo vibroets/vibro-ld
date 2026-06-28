@@ -276,11 +276,11 @@ const UserQuiz = () => {
             }
           };
           window.addEventListener('message', handleYouTubeMessage);
+          setLoading(false);
           
           return () => {
             window.removeEventListener('message', handleYouTubeMessage);
           };
-          setLoading(false);
         } else {
           console.error('Invalid YouTube URL:', videoUrl);
           setError('Invalid YouTube URL');
