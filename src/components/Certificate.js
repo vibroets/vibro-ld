@@ -167,9 +167,6 @@ const Certificate = () => {
     if (!certificateRef.current) return null;
 
     try {
-      // Store original view mode
-      const originalViewMode = viewMode;
-      
       const certElement = certificateRef.current;
       
       // Get the actual dimensions of the certificate
