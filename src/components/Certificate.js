@@ -172,7 +172,7 @@ const Certificate = () => {
       const certElement = certificateRef.current;
       
       // Wait for any pending renders
-      await new Promise(resolve => setTimeout(resolve, 300));
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       // Get the actual dimensions of the certificate
       const rect = certElement.getBoundingClientRect();
@@ -180,7 +180,7 @@ const Certificate = () => {
       const height = Math.max(rect.scrollHeight, rect.height, 800);
 
       const canvas = await html2canvas(certElement, {
-        scale: 3,
+        scale: 2,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -190,7 +190,16 @@ const Certificate = () => {
         windowWidth: width,
         windowHeight: height,
         scrollX: 0,
-        scrollY: 0
+        scrollY: 0,
+        onclone: (clonedDoc) => {
+          // Ensure all images are loaded
+          const images = clonedDoc.querySelectorAll('img');
+          images.forEach(img => {
+            if (!img.complete) {
+              img.crossOrigin = 'anonymous';
+            }
+          });
+        }
       });
 
       return canvas;
