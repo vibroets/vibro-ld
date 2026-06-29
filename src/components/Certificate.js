@@ -10,18 +10,28 @@ const printStyles = `
   @media print {
     @page {
       size: A4 landscape;
-      margin: 0;
+      margin: 0.5cm;
     }
     body {
+      margin: 0;
+      padding: 0;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
+    .print-hidden {
+      display: none !important;
+    }
     .print-certificate {
-      width: 100vw !important;
-      height: 100vh !important;
+      width: 100% !important;
+      height: auto !important;
       max-width: none !important;
       margin: 0 !important;
       padding: 0 !important;
+      page-break-inside: avoid;
+    }
+    .print-certificate > div {
+      width: 100% !important;
+      height: auto !important;
     }
   }
 `;
@@ -157,16 +167,15 @@ const Certificate = () => {
     if (!certificateRef.current) return null;
 
     try {
-      // Store original view mode and switch to print mode for full-screen capture
+      // Store original view mode
       const originalViewMode = viewMode;
-      if (viewMode !== 'print') {
-        setViewMode('print');
-      }
-
-      // Wait for print view to render
-      await new Promise(resolve => setTimeout(resolve, 500));
-
+      
       const certElement = certificateRef.current;
+      
+      // Get the actual dimensions of the certificate
+      const rect = certElement.getBoundingClientRect();
+      const width = Math.max(rect.width, 800);
+      const height = Math.max(rect.height, 600);
 
       const canvas = await html2canvas(certElement, {
         scale: 2,
@@ -174,21 +183,17 @@ const Certificate = () => {
         allowTaint: true,
         backgroundColor: '#ffffff',
         logging: false,
-        width: certElement.scrollWidth,
-        height: certElement.scrollHeight,
-        windowWidth: certElement.scrollWidth,
-        windowHeight: certElement.scrollHeight
+        width: width,
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
+        scrollX: 0,
+        scrollY: 0
       });
-
-      // Restore original view mode
-      if (originalViewMode !== 'print') {
-        setViewMode(originalViewMode);
-      }
 
       return canvas;
     } catch (error) {
-      // Restore view mode even if canvas generation fails
-      setViewMode('normal');
+      console.error('Canvas generation error:', error);
       throw error;
     }
   };
@@ -314,7 +319,7 @@ const Certificate = () => {
     }
     const shareTitle = result?.quizTitle || certificate.quizTitle || 'Unknown Training';
     const shareScore = result?.score ?? certificate.score ?? 0;
-    const shareText = `I earned a certificate for completing "${shareTitle}" with ${shareScore}%!`;
+    const shareText = `${certificate.userName} earned a certificate for completing "${shareTitle}" with ${shareScore}%!`;
 
     // Try sharing the certificate image via Web Share API
     try {
