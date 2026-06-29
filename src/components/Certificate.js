@@ -92,7 +92,6 @@ const Certificate = () => {
     const users = JSON.parse(localStorage.getItem('users') || '[]');
     
     // Migrate all existing certificates to have new fields
-    let needsUpdate = false;
     const updatedCertificates = certificates.map(cert => ({
       ...cert,
       isRevoked: cert.isRevoked ?? false,
@@ -102,7 +101,6 @@ const Certificate = () => {
 
     if (JSON.stringify(certificates) !== JSON.stringify(updatedCertificates)) {
       localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
-      needsUpdate = true;
     }
     
     // Find or create Mr. Kumar
