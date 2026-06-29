@@ -265,51 +265,40 @@ const Certificate = () => {
   const handleDownload = async () => {
     if (!certificateRef.current) return;
 
+    // For desktop, use print dialog which allows save as PDF
+    const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
+    
+    if (!isMobile) {
+      alert('Please use the Print button to save the certificate as PDF.');
+      return;
+    }
+
+    // For mobile, try canvas generation
     try {
       const canvas = await generateCanvas();
       if (!canvas) {
-        alert('Failed to generate certificate image. Please try again.');
+        alert('Failed to generate certificate image. Please use Print instead.');
         return;
       }
 
       const fileName = `certificate-${certificate.userName.replace(/\s+/g, '-')}-${certificateId}.png`;
-
-      // Try Web Share API with file (works on Android/Capacitor)
-      const isMobile = /Android|iPhone|iPad/i.test(navigator.userAgent);
-      if (isMobile && navigator.canShare) {
-        canvas.toBlob(async (blob) => {
-          if (!blob) {
-            alert('Failed to generate certificate image. Please try again.');
-            return;
-          }
-          const file = new File([blob], fileName, { type: 'image/png' });
-          if (navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                title: 'Download Certificate',
-                files: [file]
-              });
-              return;
-            } catch (e) {
-            }
-          }
-          // Fallback: download directly
-          const url = URL.createObjectURL(blob);
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = fileName;
-          link.click();
-          setTimeout(() => URL.revokeObjectURL(url), 100);
-        }, 'image/png', 1.0);
-      } else {
-        // Desktop: use anchor download
+      
+      canvas.toBlob(async (blob) => {
+        if (!blob || blob.size === 0) {
+          alert('Failed to generate certificate image. Please use Print instead.');
+          return;
+        }
+        
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
+        link.href = url;
         link.download = fileName;
-        link.href = canvas.toDataURL('image/png', 1.0);
         link.click();
-      }
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+      }, 'image/png', 0.95);
     } catch (error) {
-      alert('Failed to generate certificate image. Please try again.');
+      console.error('Download error:', error);
+      alert('Failed to download certificate. Please use Print instead.');
     }
   };
 
