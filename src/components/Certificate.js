@@ -85,10 +85,24 @@ const Certificate = () => {
     };
   }, [certificateId, navigate]);
 
-  // Create certificate for Mr. Kumar if it doesn't exist
+  // Migrate all certificates to new structure and create Mr. Kumar's certificate
   useEffect(() => {
     const certificates = JSON.parse(localStorage.getItem('certificates') || '[]');
     const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    // Migrate all existing certificates to have new fields
+    let needsUpdate = false;
+    const updatedCertificates = certificates.map(cert => ({
+      ...cert,
+      isRevoked: cert.isRevoked ?? false,
+      reissueCount: cert.reissueCount ?? 0,
+      reissueHistory: cert.reissueHistory ?? []
+    }));
+
+    if (JSON.stringify(certificates) !== JSON.stringify(updatedCertificates)) {
+      localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
+      needsUpdate = true;
+    }
     
     // Find or create Mr. Kumar
     let kumarUser = users.find(u => u.name?.toLowerCase().includes('kumar'));
@@ -105,7 +119,7 @@ const Certificate = () => {
     }
 
     // Check if certificate already exists for Lean Six Sigma Green Belt Training
-    const existingCert = certificates.find(
+    const existingCert = updatedCertificates.find(
       c => c.userId === kumarUser.id && c.quizTitle?.toLowerCase().includes('lean six sigma')
     );
 
@@ -130,8 +144,8 @@ const Certificate = () => {
         reissueHistory: []
       };
 
-      certificates.push(newCertificate);
-      localStorage.setItem('certificates', JSON.stringify(certificates));
+      updatedCertificates.push(newCertificate);
+      localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
       
       // If viewing this certificate, update state
       if (certificateId === newCertificate.id) {
