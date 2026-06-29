@@ -85,6 +85,61 @@ const Certificate = () => {
     };
   }, [certificateId, navigate]);
 
+  // Create certificate for Mr. Kumar if it doesn't exist
+  useEffect(() => {
+    const certificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    
+    // Find or create Mr. Kumar
+    let kumarUser = users.find(u => u.name?.toLowerCase().includes('kumar'));
+    if (!kumarUser) {
+      kumarUser = {
+        id: 'user-kumar-001',
+        name: 'Mr. Kumar',
+        email: 'kumar@example.com',
+        department: 'Quality Assurance',
+        role: 'user'
+      };
+      users.push(kumarUser);
+      localStorage.setItem('users', JSON.stringify(users));
+    }
+
+    // Check if certificate already exists for Lean Six Sigma Green Belt Training
+    const existingCert = certificates.find(
+      c => c.userId === kumarUser.id && c.quizTitle?.toLowerCase().includes('lean six sigma')
+    );
+
+    if (!existingCert) {
+      // Create new certificate for Mr. Kumar
+      const newCertificate = {
+        id: `cert-${Date.now()}`,
+        userId: kumarUser.id,
+        userName: kumarUser.name,
+        userDepartment: kumarUser.department || 'Quality Assurance',
+        quizId: 'quiz-lean-six-sigma-001',
+        quizTitle: 'Lean Six Sigma Green Belt Training',
+        trainingType: 'Professional Certification',
+        score: 95,
+        passPercentage: 70,
+        organizationName: 'VIBRO Technical and Engineering Solutions',
+        issuedAt: new Date().toISOString(),
+        expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year validity
+        certificateNumber: `VIBRO-LSSGB-${Date.now().toString().slice(-8)}`,
+        isRevoked: false,
+        reissueCount: 0,
+        reissueHistory: []
+      };
+
+      certificates.push(newCertificate);
+      localStorage.setItem('certificates', JSON.stringify(certificates));
+      
+      // If viewing this certificate, update state
+      if (certificateId === newCertificate.id) {
+        setCertificate(newCertificate);
+      }
+    }
+  }, [certificateId]);
+
   const generateCanvas = async () => {
     if (!certificateRef.current) return null;
 
