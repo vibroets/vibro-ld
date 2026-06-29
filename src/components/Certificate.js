@@ -517,6 +517,12 @@ const Certificate = () => {
 
   const isExpired = certificate.expiresAt && new Date(certificate.expiresAt) < new Date();
   const isRevoked = certificate.isRevoked;
+  
+  // Determine if using HashRouter (user mode) or BrowserRouter (admin mode)
+  const isUserMode = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('appMode') === 'user';
+  const qrCodeUrl = isUserMode 
+    ? `${window.location.origin}/#/certificate/${certificate.id}`
+    : `${window.location.origin}/certificate/${certificate.id}`;
 
   return (
     <div className="min-h-screen bg-gray-50 print:bg-white">
@@ -663,9 +669,9 @@ const Certificate = () => {
                   CERTIFICATE OF COMPLETION
                 </h1>
                 
-                {/* This is to certify */}
+                {/* This certificate is awarded to */}
                 <p className="text-sm md:text-xl text-gray-600 italic mb-2 md:mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  This is to certify that
+                  This certificate is awarded to
                 </p>
                 
                 {/* Recipient Name */}
@@ -683,9 +689,9 @@ const Certificate = () => {
                 {/* Decorative Line */}
                 <div className="w-24 md:w-48 h-0.5 bg-yellow-500 mb-3 md:mb-6"></div>
                 
-                {/* Has completed */}
+                {/* For successfully completing */}
                 <p className="text-sm md:text-xl text-gray-600 italic mb-2 md:mb-4" style={{ fontFamily: 'Georgia, serif' }}>
-                  has successfully completed
+                  for successfully completing
                 </p>
                 
                 {/* Training Title */}
@@ -709,9 +715,9 @@ const Certificate = () => {
                   })()}
                 </h4>
                 
-                {/* Training Type */}
+                {/* Conducted by */}
                 <p className="text-sm md:text-lg text-gray-500 mb-3 md:mb-4">
-                  {certificate.trainingType}
+                  conducted by {certificate.organizationName}
                 </p>
                 
                 {/* Score */}
@@ -806,7 +812,7 @@ const Certificate = () => {
                   <div className="flex flex-col items-center">
                     <div className="bg-white p-2 border border-gray-300 rounded-lg shadow-sm">
                       <QRCodeSVG
-                        value={`${window.location.origin}/certificate/${certificate.id}`}
+                        value={qrCodeUrl}
                         size={80}
                         level="H"
                         includeMargin={false}
