@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import html2canvas from 'html2canvas';
-import { ArrowLeft, Award, Download, Share2, Printer, CheckCircle, Maximize2, Minimize2, AlertCircle, X } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { ArrowLeft, Award, Download, Share2, Printer, CheckCircle, Maximize2, Minimize2, AlertCircle, X, Shield, RefreshCw, Ban } from 'lucide-react';
 import Sidebar from './Sidebar';
 
 // Print styles for certificate
@@ -39,6 +40,10 @@ const Certificate = () => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [viewMode, setViewMode] = useState('normal'); // 'normal' | 'print'
   const [isAdmin, setIsAdmin] = useState(false);
+  const [showReissueModal, setShowReissueModal] = useState(false);
+  const [reissueReason, setReissueReason] = useState('');
+  const [showRevocationModal, setShowRevocationModal] = useState(false);
+  const [revocationReason, setRevocationReason] = useState('');
 
   useEffect(() => {
     // Inject print styles
@@ -323,6 +328,91 @@ const Certificate = () => {
     }
   };
 
+  const handleReissue = () => {
+    if (!reissueReason.trim()) {
+      alert('Please provide a reason for reissuing the certificate.');
+      return;
+    }
+
+    const certificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+    const updatedCertificates = certificates.map(c => {
+      if (c.id === certificate.id) {
+        return {
+          ...c,
+          reissueCount: (c.reissueCount || 0) + 1,
+          reissueHistory: [
+            ...(c.reissueHistory || []),
+            {
+              date: new Date().toISOString(),
+              reason: reissueReason,
+              reissuedBy: user?.name || 'Administrator'
+            }
+          ],
+          issuedAt: new Date().toISOString(), // Update issue date
+          certificateNumber: `${c.certificateNumber}-R${(c.reissueCount || 0) + 1}` // Append reissue suffix
+        };
+      }
+      return c;
+    });
+
+    localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
+    setCertificate(updatedCertificates.find(c => c.id === certificate.id));
+    setShowReissueModal(false);
+    setReissueReason('');
+    alert('Certificate reissued successfully!');
+  };
+
+  const handleRevoke = () => {
+    if (!revocationReason.trim()) {
+      alert('Please provide a reason for revoking the certificate.');
+      return;
+    }
+
+    const certificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+    const updatedCertificates = certificates.map(c => {
+      if (c.id === certificate.id) {
+        return {
+          ...c,
+          isRevoked: true,
+          revocationReason: revocationReason,
+          revokedAt: new Date().toISOString(),
+          revokedBy: user?.name || 'Administrator'
+        };
+      }
+      return c;
+    });
+
+    localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
+    setCertificate(updatedCertificates.find(c => c.id === certificate.id));
+    setShowRevocationModal(false);
+    setRevocationReason('');
+    alert('Certificate revoked successfully!');
+  };
+
+  const handleRestore = () => {
+    if (!confirm('Are you sure you want to restore this revoked certificate?')) {
+      return;
+    }
+
+    const certificates = JSON.parse(localStorage.getItem('certificates') || '[]');
+    const updatedCertificates = certificates.map(c => {
+      if (c.id === certificate.id) {
+        return {
+          ...c,
+          isRevoked: false,
+          revocationReason: null,
+          revokedAt: null,
+          revokedBy: null
+        };
+      }
+      return c;
+    });
+
+    localStorage.setItem('certificates', JSON.stringify(updatedCertificates));
+    setCertificate(updatedCertificates.find(c => c.id === certificate.id));
+    alert('Certificate restored successfully!');
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -361,6 +451,7 @@ const Certificate = () => {
   }
 
   const isExpired = certificate.expiresAt && new Date(certificate.expiresAt) < new Date();
+  const isRevoked = certificate.isRevoked;
 
   return (
     <div className="min-h-screen bg-gray-50 print:bg-white">
@@ -447,7 +538,25 @@ const Certificate = () => {
           )}
 
           <main className={`${viewMode === 'print' ? 'fixed inset-0 z-50 bg-white p-0 m-0 max-w-none overflow-auto' : 'max-w-5xl mx-auto px-3 md:px-4 sm:px-6 lg:px-8 py-4 md:py-8 pb-20 md:pb-8'} print:p-0 print:max-w-none`}>
-            {isExpired && viewMode !== 'print' && (
+            {isRevoked && viewMode !== 'print' && (
+              <div className="mb-4 md:mb-6 bg-red-50 border border-red-200 rounded-lg p-3 md:p-4 flex items-center print:hidden">
+                <Ban className="w-5 h-5 text-red-600 mr-3 flex-shrink-0" />
+                <div className="flex-1">
+                  <p className="text-red-700 text-sm font-semibold">This certificate has been revoked</p>
+                  {certificate.revocationReason && <p className="text-red-600 text-xs mt-1">Reason: {certificate.revocationReason}</p>}
+                </div>
+                {isAdmin && (
+                  <button
+                    onClick={handleRestore}
+                    className="ml-3 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700 transition"
+                  >
+                    Restore
+                  </button>
+                )}
+              </div>
+            )}
+
+            {isExpired && viewMode !== 'print' && !isRevoked && (
               <div className="mb-4 md:mb-6 bg-red-50 border border-red-200 rounded-lg p-3 md:p-4 flex items-center print:hidden">
                 <AlertCircle className="w-5 h-5 text-red-600 mr-3 flex-shrink-0" />
                 <p className="text-red-700 text-sm">This certificate has expired and is no longer valid.</p>
@@ -593,6 +702,14 @@ const Certificate = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Badge */}
+                <div className="flex items-center justify-center mb-3 md:mb-4">
+                  <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-white px-4 py-1 rounded-full text-xs md:text-sm font-semibold shadow-md">
+                    <Award className="w-4 h-4 md:w-5 md:h-5 inline mr-1" />
+                    Certified Professional
+                  </div>
+                </div>
                 
                 {/* Certificate Number */}
                 <p className="text-xs md:text-sm md:text-base text-yellow-700 font-semibold mt-auto mb-1 break-all">
@@ -603,6 +720,48 @@ const Certificate = () => {
                 <p className="text-xs md:text-sm text-gray-400 break-all">
                   ID: {certificate.id}
                 </p>
+
+                {/* Digital Signature and QR Code Section */}
+                <div className="flex flex-col md:flex-row items-center justify-between w-full mt-4 md:mt-6 pt-4 md:pt-6 border-t border-gray-200">
+                  {/* Digital Signature */}
+                  <div className="flex flex-col items-center text-center mb-4 md:mb-0">
+                    <div className="text-blue-900 font-bold text-xs md:text-base mb-1" style={{ fontFamily: 'Georgia, serif' }}>
+                      {certificate.organizationName}
+                    </div>
+                    <div className="text-gray-500 text-xs">
+                      Authorized Signatory
+                    </div>
+                    <div className="flex items-center mt-2 text-blue-600">
+                      <Shield className="w-4 h-4 md:w-5 md:h-5 mr-1" />
+                      <span className="text-xs font-semibold">Digitally Signed</span>
+                    </div>
+                  </div>
+
+                  {/* QR Code */}
+                  <div className="flex flex-col items-center">
+                    <div className="bg-white p-2 border border-gray-300 rounded-lg shadow-sm">
+                      <QRCodeSVG
+                        value={`${window.location.origin}/certificate/${certificate.id}`}
+                        size={80}
+                        level="H"
+                        includeMargin={false}
+                      />
+                    </div>
+                    <div className="text-xs text-gray-500 mt-2">
+                      Scan to verify
+                    </div>
+                  </div>
+                </div>
+
+                {/* Reissue Tracking */}
+                {certificate.reissueCount > 0 && (
+                  <div className="w-full mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex items-center justify-center text-xs text-gray-500">
+                      <RefreshCw className="w-3 h-3 mr-1" />
+                      <span>Reissued {certificate.reissueCount} time(s)</span>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -620,6 +779,24 @@ const Certificate = () => {
             )}
             {isAdmin && (
               <>
+                {!isRevoked && (
+                  <button
+                    onClick={() => setShowReissueModal(true)}
+                    className="flex items-center px-4 md:px-6 py-2 md:py-3 bg-purple-600 text-white rounded-lg font-semibold text-sm hover:bg-purple-700 transition duration-200"
+                  >
+                    <RefreshCw className="w-5 h-5 mr-2" />
+                    Reissue
+                  </button>
+                )}
+                {!isRevoked && (
+                  <button
+                    onClick={() => setShowRevocationModal(true)}
+                    className="flex items-center px-4 md:px-6 py-2 md:py-3 bg-red-600 text-white rounded-lg font-semibold text-sm hover:bg-red-700 transition duration-200"
+                  >
+                    <Ban className="w-5 h-5 mr-2" />
+                    Revoke
+                  </button>
+                )}
                 <button
                   onClick={handlePrint}
                   className="flex items-center px-4 md:px-6 py-2 md:py-3 bg-gray-700 text-white rounded-lg font-semibold text-sm hover:bg-gray-800 transition duration-200"
@@ -647,6 +824,78 @@ const Certificate = () => {
         </main>
         </div>
       </div>
+
+      {/* Reissue Modal */}
+      {showReissueModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Reissue Certificate</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              This will generate a new certificate with an updated issue date and certificate number. The original certificate will remain in the reissue history.
+            </p>
+            <textarea
+              value={reissueReason}
+              onChange={(e) => setReissueReason(e.target.value)}
+              placeholder="Reason for reissue (required)"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 text-sm"
+              rows="3"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowReissueModal(false);
+                  setReissueReason('');
+                }}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleReissue}
+                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition text-sm"
+              >
+                Reissue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Revocation Modal */}
+      {showRevocationModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6">
+            <h3 className="text-lg font-bold text-red-900 mb-4">Revoke Certificate</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              This will mark the certificate as revoked. It will no longer be valid and will show a revoked status when viewed.
+            </p>
+            <textarea
+              value={revocationReason}
+              onChange={(e) => setRevocationReason(e.target.value)}
+              placeholder="Reason for revocation (required)"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 mb-4 text-sm"
+              rows="3"
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setShowRevocationModal(false);
+                  setRevocationReason('');
+                }}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleRevoke}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm"
+              >
+                Revoke
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
