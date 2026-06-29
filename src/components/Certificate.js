@@ -838,14 +838,7 @@ const Certificate = () => {
                   className="flex items-center px-4 md:px-6 py-2 md:py-3 bg-gray-700 text-white rounded-lg font-semibold text-sm hover:bg-gray-800 transition duration-200"
                 >
                   <Printer className="w-5 h-5 mr-2" />
-                  Print
-                </button>
-                <button
-                  onClick={handleDownload}
-                  className="flex items-center px-4 md:px-6 py-2 md:py-3 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition duration-200"
-                >
-                  <Download className="w-5 h-5 mr-2" />
-                  Download
+                  Print / Save PDF
                 </button>
                 <button
                   onClick={handleShare}
