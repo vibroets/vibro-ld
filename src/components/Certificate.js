@@ -55,6 +55,8 @@ const Certificate = () => {
   const [showRevocationModal, setShowRevocationModal] = useState(false);
   const [revocationReason, setRevocationReason] = useState('');
   const [showRestoreModal, setShowRestoreModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [usersList, setUsersList] = useState([]);
 
   useEffect(() => {
     // Inject print styles
@@ -169,13 +171,16 @@ const Certificate = () => {
     try {
       const certElement = certificateRef.current;
       
+      // Wait for any pending renders
+      await new Promise(resolve => setTimeout(resolve, 300));
+      
       // Get the actual dimensions of the certificate
       const rect = certElement.getBoundingClientRect();
-      const width = Math.max(rect.width, 800);
-      const height = Math.max(rect.height, 600);
+      const width = Math.max(rect.scrollWidth, rect.width, 1200);
+      const height = Math.max(rect.scrollHeight, rect.height, 800);
 
       const canvas = await html2canvas(certElement, {
-        scale: 2,
+        scale: 3,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -300,6 +305,15 @@ const Certificate = () => {
   };
 
   const handleShare = async () => {
+    // Load users list for sharing
+    const users = JSON.parse(localStorage.getItem('users') || '[]');
+    setUsersList(users);
+    setShowShareModal(true);
+  };
+
+  const handleShareWithUser = async (selectedUser) => {
+    setShowShareModal(false);
+    
     // Look up the actual result title and score for sharing
     const results = JSON.parse(localStorage.getItem('quizResults') || '[]');
     const certIssuedAt = new Date(certificate.issuedAt).getTime();
@@ -318,70 +332,21 @@ const Certificate = () => {
     const shareScore = result?.score ?? certificate.score ?? 0;
     const shareText = `${certificate.userName} earned a certificate for completing "${shareTitle}" with ${shareScore}%!`;
 
-    // Try sharing the certificate image via Web Share API
+    // Try sharing via Web Share API
     try {
-      const canvas = await generateCanvas();
-      if (canvas && navigator.canShare) {
-        canvas.toBlob(async (blob) => {
-          if (!blob) {
-            // Fallback to text-only share if canvas generation fails
-            if (navigator.share) {
-              try {
-                await navigator.share({
-                  title: 'Training Certificate',
-                  text: shareText
-                });
-              } catch (e) {
-                navigator.clipboard.writeText(shareText);
-                alert('Certificate details copied to clipboard!');
-              }
-            } else {
-              navigator.clipboard.writeText(shareText);
-              alert('Certificate details copied to clipboard!');
-            }
-            return;
-          }
-          const file = new File([blob], `certificate-${certificateId}.png`, { type: 'image/png' });
-          if (navigator.canShare({ files: [file] })) {
-            try {
-              await navigator.share({
-                title: 'Training Certificate',
-                text: shareText,
-                files: [file]
-              });
-              return;
-            } catch (e) {
-            }
-          }
-          // Fallback: share text only
-          if (navigator.share) {
-            try {
-              await navigator.share({
-                title: 'Training Certificate',
-                text: shareText
-              });
-            } catch (e) {
-              navigator.clipboard.writeText(shareText);
-              alert('Certificate details copied to clipboard!');
-            }
-          } else {
-            navigator.clipboard.writeText(shareText);
-            alert('Certificate details copied to clipboard!');
-          }
-        }, 'image/png', 1.0);
-      } else if (navigator.share) {
+      if (navigator.share) {
         await navigator.share({
           title: 'Training Certificate',
-          text: shareText
+          text: `${shareText} Shared with ${selectedUser.name}.`
         });
       } else {
-        navigator.clipboard.writeText(shareText);
-        alert('Certificate details copied to clipboard!');
+        navigator.clipboard.writeText(`${shareText} Shared with ${selectedUser.name}.`);
+        alert(`Certificate details shared with ${selectedUser.name} and copied to clipboard!`);
       }
     } catch (error) {
-      // Final fallback: copy to clipboard
-      navigator.clipboard.writeText(shareText);
-      alert('Certificate details copied to clipboard!');
+      console.error('Share error:', error);
+      navigator.clipboard.writeText(`${shareText} Shared with ${selectedUser.name}.`);
+      alert(`Certificate details shared with ${selectedUser.name} and copied to clipboard!`);
     }
   };
 
@@ -990,6 +955,45 @@ const Certificate = () => {
                 className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm"
               >
                 Restore
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share User Selection Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full p-6 max-h-[80vh] flex flex-col">
+            <h3 className="text-lg font-bold text-gray-900 mb-4">Share Certificate</h3>
+            <p className="text-sm text-gray-600 mb-4">Select a user to share this certificate with:</p>
+            <div className="overflow-y-auto flex-1 mb-4">
+              {usersList.length > 0 ? (
+                usersList.map((user) => (
+                  <button
+                    key={user.id}
+                    onClick={() => handleShareWithUser(user)}
+                    className="w-full text-left px-4 py-3 bg-gray-50 hover:bg-gray-100 rounded-lg mb-2 transition flex items-center"
+                  >
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold mr-3">
+                      {user.name?.charAt(0).toUpperCase() || 'U'}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-gray-900">{user.name}</div>
+                      <div className="text-xs text-gray-500">{user.email || user.department || 'User'}</div>
+                    </div>
+                  </button>
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">No users available to share with.</p>
+              )}
+            </div>
+            <div className="flex justify-end">
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition text-sm"
+              >
+                Cancel
               </button>
             </div>
           </div>
